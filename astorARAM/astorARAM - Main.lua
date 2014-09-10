@@ -377,7 +377,19 @@ function AstorAram:Load()
 
  for index = 1, #dependencies do
 
-  self:CheckLib(index)
+  if FileExist(LIB_PATH .. dependencies[index] .. ".lua") then
+
+   require(dependencies[index])
+
+  else
+
+   ChatHandler:Print("LIBRARY: " .. dependencies[index] .. " was not found. Commencing download.")
+
+   ERROR = true
+
+   self:DownloadLib(index)
+
+  end
 
  end
 
@@ -403,6 +415,8 @@ function AstorAram:Load()
 
  end
 
+   self:Update()
+
 end
 
 function AstorAram:DownloadLib(id)
@@ -414,8 +428,6 @@ function AstorAram:DownloadLib(id)
   DownloadFile(dependencyURL[id], file, function()
 
     ChatHandler:Print(dependencies[id] .. " was downloaded successfully.")
-
-    self:CheckLib(id)
 
     if id == math.max(#dependencies) then
 
@@ -433,36 +445,18 @@ function AstorAram:DownloadLib(id)
 
 end
 
-function AstorAram:CheckLib(id)
-
-  if FileExist(LIB_PATH .. dependencies[id] .. ".lua") then
-
-   require(dependencies[id])
-
-  else
-
-   ChatHandler:Print("LIBRARY: " .. dependencies[id] .. " was not found. Commencing download.")
-
-   ERROR = true
-
-   self:DownloadLib(id)
-
-  end
-
-end
-
 function AstorAram:Update()
 
- local VERSION_URL = "https://raw.githubusercontent.com/Astoriane/BoL-Scripts/master/astorARAM/astorARAM.version"
+ local VERSION_URL = "/Astoriane/BoL-Scripts/master/astorARAM/astorARAM.version"
  local UPDATE_URL = "https://raw.githubusercontent.com/Astoriane/BoL-Scripts/master/astorARAM/astorARAM%20-%20Main.lua"
 
- local serverVersion = GetWebResult("raw.githubusercontent.com", "/Astoriane/BoL-Scripts/master/astorARAM/astorARAM.version")
+ local serverVersion = GetWebResult("raw.github.com", "/Astoriane/BoL-Scripts/master/astorARAM/".. "astorARAM.version" .."?rand="..tostring(math.random(1,10000)))
 
- if not Menu.opts.update then
+ if Menu.opts.update then
 
-  if serverVersion > version then
+  if  tonumber(serverVersion) ~= version then
 
-   DownloadFile(UPDATE_URL, SCRIPT_PATH, function()
+    DownloadFile(UPDATE_URL, SCRIPT_PATH .. scriptName .. ".lua", function()
 
     ChatHandler:Print("New version v" .. serverVersion .. " was downloaded. Please reload the script manually." )
 
