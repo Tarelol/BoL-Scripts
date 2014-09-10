@@ -48,7 +48,7 @@ dependencyURL = {
 player = GetMyHero()
 hero = player.charName
 
-local version = 1.42
+local version = 1.38
 
 local scriptName = "astorARAM"
 local scriptTagged = "[" .. scriptName .. "]"
@@ -315,7 +315,7 @@ end
 
 function ProcessDebug()
 
- print(chatTableGameAlive)
+ print(GetWebResult("raw.github.com", "/Astoriane/BoL-Scripts/master/astorARAM/".. "astorARAM.version" .."?rand="..tostring(math.random(1,10000))))
 
 end
 
@@ -393,6 +393,12 @@ function AstorAram:Load()
 
   ChatHandler:Load()
 
+  AddGameOverCallback(function()
+
+    ChatHandler:SendMessage(chatTableEnd[2])
+
+    end)
+
   _G.AstorAramLoaded = true
 
  end
@@ -450,13 +456,15 @@ function AstorAram:Update()
  local VERSION_URL = "https://raw.githubusercontent.com/Astoriane/BoL-Scripts/master/astorARAM/astorARAM.version"
  local UPDATE_URL = "https://raw.githubusercontent.com/Astoriane/BoL-Scripts/master/astorARAM/astorARAM%20-%20Main.lua"
 
- local serverVersion = GetWebResult(VERSION_URL)
+ local serverVersion = GetWebResult("raw.githubusercontent.com", "/Astoriane/BoL-Scripts/master/astorARAM/astorARAM.version")
 
  if not Menu.opts.update then
 
   if serverVersion > version then
 
    DownloadFile(UPDATE_URL, SCRIPT_PATH, function()
+
+    ChatHandler:Print("New version v" .. serverVersion .. " was downloaded. Please reload the script manually." )
 
     return end)
 
@@ -1112,7 +1120,7 @@ function ChatHandler:Load()
 end
 
 
-local chatFlag1 = false
+local chatFlag1, chatFlag2 = false, false
 
 function ChatHandler:StartupMessage(msg)
 
@@ -1126,6 +1134,12 @@ function ChatHandler:StartupMessage(msg)
   end
 
  end
+
+end
+
+function ChatHandler:EndgameMessage()
+
+  ChatHandler:SendMessage(chatTableEnd[2])
 
 end
 
