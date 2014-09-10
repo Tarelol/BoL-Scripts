@@ -1,37 +1,54 @@
---[[  
-            _                    _____            __  __ 
-           | |             /\   |  __ \     /\   |  \/  |
-   __ _ ___| |_ ___  _ __ /  \  | |__) |   /  \  | \  / |
-  / _` / __| __/ _ \| '__/ /\ \ |  _  /   / /\ \ | |\/| |
- | (_| \__ \ || (_) | | / ____ \| | \ \  / ____ \| |  | |
-  \__,_|___/\__\___/|_|/_/    \_\_|  \_\/_/    \_\_|  |_| v1
+--[[
 
-  - astorARAM - League ARAM script. Written by Astoriane.
-  - inspired by Burnbot by Burn
-  - huge thanks to people who worked on iAram
+           _                    _____            __  __ 
+          | |             /\   |  __ \     /\   |  \/  |
+  __ _ ___| |_ ___  _ __ /  \  | |__) |   /  \  | \  / |
+ / _` / __| __/ _ \| '__/ /\ \ |  _  /   / /\ \ | |\/| |
+| (_| \__ \ || (_) | | / ____ \| | \ \  / ____ \| |  | |
+ \__,_|___/\__\___/|_|/_/    \_\_|  \_\/_/    \_\_|  |_| v1
+
+
+
+- astorARAM - League ARAM script. Written by Astoriane.
+
+- inspired by Burnbot by Burn
+
+- huge thanks to people who worked on iAram
+
+
+
 
 
 ]]--
 
-if GetGame().map.index ~= 12 then return end -- Don't load if not ARAM
+if GetGame().map.index ~= 12 or not VIP_USER then return end -- Don't load if not ARAM
+
+ERROR = false
 
 local abilitySequence
 local qOff, wOff, eOff, rOff = 0, 0, 0, 0
 
-LOG_PATH = SCRIPT_PATH .. "astorARAM\\"
-LOG_FILE = LOG_PATH .. "gameLog.txt"
+FILE_PATH = SCRIPT_PATH .. "astorARAM\\"
+LOG_FILE = FILE_PATH .. "gameLog.txt"
 
 dependencies = {
 
     "ItemRecipes",
-    "SourceLib"
+    "iSAC"
+
+}
+
+dependencyURL = {
+
+    "http://pastebin.com/download.php?i=hTM4bVC6",
+    "https://raw.githubusercontent.com/BoL-Apple/BoL/master/Common/iSAC.lua"
 
 }
 
 player = GetMyHero()
 hero = player.charName
 
-local version = 1.42
+local version = 1.34
 
 local scriptName = "astorARAM"
 local scriptTagged = "[" .. scriptName .. "]"
@@ -262,8 +279,6 @@ function OnLoad()
 
     AstorAram:Load()
 
-    _G.AstorAramLoaded = true
-
   end
 
 end
@@ -327,41 +342,80 @@ function AstorAram:__init()
 
 
 
-        - Check allies and enemies in range, keep a table.
-
-
-        - Check skills and cooldowns.
-
-
-        - Allies in range < enemies in range = def mode
-
-        
-
-        - Def mode: do circular random movements stay behind allied minions and towers, use poke spells
 
 
 
-        - Allies approaching enemies, = TF mode
+
+
+  - Check allies and enemies in range, keep a table.
 
 
 
-        - TF mode = stay near a random ally, use skills on nearest enemy
 
 
-        - Allies in range > enemies in range, farm mode.
-
-
-        - Farm mode = use skills and basic attacks on minions to push lane
-
-
-        - allies attacking tower = push mode
-
-
-        - Push mode: attack towers and inhibs
+  - Check skills and cooldowns.
 
 
 
-      ]]--
+
+
+  - Allies in range < enemies in range = def mode
+
+
+
+
+
+
+
+  - Def mode: do circular random movements stay behind allied minions and towers, use poke spells
+
+
+
+
+
+
+
+    - Allies approaching enemies, = TF mode
+
+
+
+
+
+
+
+    - TF mode = stay near a random ally, use skills on nearest enemy
+
+
+
+
+
+    - Allies in range > enemies in range, farm mode.
+
+
+
+
+
+    - Farm mode = use skills and basic attacks on minions to push lane
+
+
+
+
+
+    - allies attacking tower = push mode
+
+
+
+
+
+    - Push mode: attack towers and inhibs
+
+
+
+
+
+
+
+    ]]--
 
       Bot()
 
@@ -382,6 +436,12 @@ end
 
 function AstorAram:Load()
 
+  if not FileExist(FILE_PATH) then
+
+    os.execute("mkdir " .. FILE_PATH)
+
+  end
+
   for index = 1, #dependencies do
 
     if FileExist(LIB_PATH .. dependencies[index] .. ".lua") then
@@ -390,24 +450,81 @@ function AstorAram:Load()
 
     else
 
-      print("Dependency: " .. dependenices[index] .. " was not found. Please redownload.")
-      Error = true
+      ChatHandler:Print("LIBRARY: " .. dependencies[index] .. " was not found. Commencing download.")
+
+      self:DownloadLib(index)
+
+      if self:DownloadLib(index) then
+
+
+
+      else
+
+        ERROR = true
+
+      end
 
     end
 
   end
 
-  if not Error then
 
-    PlayerHandler:Load()
+  if not ERROR then
 
     LoadMenu()
+
+    PlayerHandler:Load()
 
     LoadingSequence()
 
     InventoryHandler:Load()
 
     ChatHandler:Load()
+
+    _G.AstorAramLoaded = true
+
+  end
+
+end
+
+function AstorAram:DownloadLib(id)
+
+  if type(id) == "number" then
+
+    local file = LIB_PATH .. dependencies[id] .. ".lua"
+
+    DownloadFile(dependencyURL[id], file, function()
+
+        ChatHandler:Print(dependencies[id] .. " Was downloaded successfully.")
+
+        return true
+
+    end)
+
+  end
+
+end
+
+function AstorAram:CheckLib(id)
+
+
+
+end
+
+function AstorAram:Update()
+
+  local VERSION_URL = "https://raw.githubusercontent.com/Astoriane/BoL-Scripts/master/astorARAM/astorARAM.version"
+  local UPDATE_URL = "https://raw.githubusercontent.com/Astoriane/BoL-Scripts/master/astorARAM/astorARAM%20-%20Main.lua"
+
+  local serverVersion = GetWebResult(VERSION_URL)
+
+  if not Menu.opts.update then
+
+    if serverVersion > version then
+
+      DownloadFile(UPDATE_URL, SCRIPT_PATH, function() return end)
+
+    end
 
   end
 
@@ -439,6 +556,7 @@ function LoadMenu()
   Menu:addSubMenu("Chat options", "chat")
 
   Menu.opts:addParam("enabled", "Enable astorARAM", SCRIPT_PARAM_ONOFF, true)
+  Menu.opts:addParam("update", "Enable Automatic Updates", SCRIPT_PARAM_ONOFF, true)
   Menu.opts:addParam("manualMode", "Toggle Manual Controls", SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte('B'))
   Menu.opts:addParam("autoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, true)
 
@@ -465,7 +583,6 @@ end
 ------------------------------------------
 
 class 'PlayerHandler'
-
 function PlayerHandler:__init()
 
   self:AutoLevel()
@@ -979,7 +1096,7 @@ end
 
 function ChatHandler:Load()
 
-  local path = SCRIPT_PATH .. scriptName .. "\\chat.txt"
+  local path = FILE_PATH .. "\\chat.txt"
 
   if FileExist(path) then
 
@@ -1043,9 +1160,9 @@ function ChatHandler:Load()
     end
 
   else
-    
-    DownloadFile("http://pastebin.com/download.php?i=PPSeuMPw", path, function() end)
-    
+
+    DownloadFile("http://pastebin.com/download.php?i=PPSeuMPw", path, function() return end)
+
     self:Load()
 
   end
@@ -1054,6 +1171,7 @@ function ChatHandler:Load()
   chatNextDelay2 = os.clock() + 135
 
 end
+
 
 local chatFlag1 = false
 
@@ -1078,7 +1196,17 @@ function ChatHandler:SendMessage(msg)
 
 end
 
+function ChatHandler:Print(msg)
 
+  PrintChat("<font color='#0066cc'>".. scriptTagged .. "</font> " .. self:Tag(msg, "#ffb732"))
+
+end
+
+function ChatHandler:Tag(msg, color)
+
+  return "<font color='" .. color .. "'>" .. msg .. "</font>"
+
+end
 
 ------------------------------
 -- Handle Drawings and Such --
@@ -1242,7 +1370,6 @@ end
 ---------------------------------------
 
 class 'EndgameHandler'
-
 function EndgameHandler:__init()
 
   if GetGame().isOver and not Exit then
