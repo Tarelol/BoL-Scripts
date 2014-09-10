@@ -48,7 +48,7 @@ dependencyURL = {
 player = GetMyHero()
 hero = player.charName
 
-local version = 1.38
+local version = 1.52
 
 local scriptName = "astorARAM"
 local scriptTagged = "[" .. scriptName .. "]"
