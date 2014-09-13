@@ -30,6 +30,7 @@ local qOff, wOff, eOff, rOff = 0, 0, 0, 0
 
 FILE_PATH = SCRIPT_PATH .. "astorARAM\\"
 LOG_FILE = FILE_PATH .. "gameLog.txt"
+SCRIPT_SPRITES = SPRITE_PATH .. "astorARAM\\"
 
 dependencies = {
 
@@ -48,7 +49,7 @@ dependencyURL = {
 player = GetMyHero()
 hero = player.charName
 
-local version = 1.52
+local version = 1.38
 
 local scriptName = "astorARAM"
 local scriptTagged = "[" .. scriptName .. "]"
@@ -88,6 +89,8 @@ drawConstants = {
   textEndY = 350 + 350 - 30
 
 }
+  
+  frame = createSprite(SCRIPT_SPRITES .. "frame.png")
 
 buyDelay = 10000
 
@@ -104,56 +107,11 @@ healthRelics =  {
 target = nil
 spawn = { x = player.x, y = player.y }
 
-assassins = {
+assassins = { "Akali", "Diana", "Evelynn", "Fizz", "Katarina", "Nidalee" }
 
-  "Akali",
-  "Diana",
-  "Evelynn",
-  "Fizz",
-  "Katarina",
-  "Nidalee"
+adtanks = { "DrMundo", "Garen", "Hecarim", "Jarvan IV", "Nasus", "Skarner", "Volibear", "Yorick" }
 
-}
-
-adtanks = {
-
-  "DrMundo",
-  "Garen",
-  "Hecarim",
-  "Jarvan IV",
-  "Nasus",
-  "Skarner",
-  "Volibear",
-  "Yorick"
-
-}
-
-adcs = {
-
-  "Ashe",
-  "Caitlyn",
-  "Corki",
-  "Draven",
-  "Ezreal",
-  "Gankplank",
-  "Graves",
-  "Jinx",
-  "KogMaw",
-  "Lucian",
-  "MasterYi",
-  "MissFortune",
-  "Quinn",
-  "Sivir",
-  "Thresh",
-  "Tristana",
-  "Tryndamere",
-  "Twitch",
-  "Urgot",
-  "Varus",
-  "Vayne",
-  "Yasuo"
-
-}
+adcs = { "Ashe", "Caitlyn", "Corki", "Draven", "Ezreal", "Gankplank", "Graves", "Jinx", "KogMaw", "Lucian", "MasterYi", "MissFortune", "Quinn", "Sivir", "Thresh", "Tristana", "Tryndamere", "Twitch", "Urgot", "Varus", "Vayne", "Yasuo" }
 
 aptanks = {
 
@@ -217,6 +175,13 @@ hybrids = {
 
   "Kayle",
   "Teemo"
+
+}
+
+manaMages = {
+  
+  "Kassadin",
+  "Ryze"
 
 }
 
@@ -377,19 +342,7 @@ function AstorAram:Load()
 
  for index = 1, #dependencies do
 
-  if FileExist(LIB_PATH .. dependencies[index] .. ".lua") then
-
-   require(dependencies[index])
-
-  else
-
-   ChatHandler:Print("LIBRARY: " .. dependencies[index] .. " was not found. Commencing download.")
-
-   ERROR = true
-
-   self:DownloadLib(index)
-
-  end
+  self:CheckLib(index)
 
  end
 
@@ -415,8 +368,6 @@ function AstorAram:Load()
 
  end
 
-   self:Update()
-
 end
 
 function AstorAram:DownloadLib(id)
@@ -428,6 +379,8 @@ function AstorAram:DownloadLib(id)
   DownloadFile(dependencyURL[id], file, function()
 
     ChatHandler:Print(dependencies[id] .. " was downloaded successfully.")
+
+    self:CheckLib(id)
 
     if id == math.max(#dependencies) then
 
@@ -445,18 +398,36 @@ function AstorAram:DownloadLib(id)
 
 end
 
+function AstorAram:CheckLib(id)
+
+  if FileExist(LIB_PATH .. dependencies[id] .. ".lua") then
+
+   require(dependencies[id])
+
+  else
+
+   ChatHandler:Print("LIBRARY: " .. dependencies[id] .. " was not found. Commencing download.")
+
+   ERROR = true
+
+   self:DownloadLib(id)
+
+  end
+
+end
+
 function AstorAram:Update()
 
- local VERSION_URL = "/Astoriane/BoL-Scripts/master/astorARAM/astorARAM.version"
- local UPDATE_URL = "https://raw.githubusercontent.com/Astoriane/BoL-Scripts/master/astorARAM/astorARAM%20-%20Main.lua"
+ local VERSION_URL = "https://raw.githubusercontent.com/Astoriane/BoL-Scripts/master/astorARAM/astorARAM.version"
+ local UPDATE_URL = "https://raw.githubusercontent.com/Astoriane/BoL-Scripts/master/astorARAM/astorARAM.lua"
 
- local serverVersion = GetWebResult("raw.github.com", "/Astoriane/BoL-Scripts/master/astorARAM/".. "astorARAM.version" .."?rand="..tostring(math.random(1,10000)))
+ local serverVersion = GetWebResult("raw.githubusercontent.com", "/Astoriane/BoL-Scripts/master/astorARAM/astorARAM.version")
 
- if Menu.opts.update then
+ if not Menu.opts.update then
 
-  if  tonumber(serverVersion) ~= version then
+  if serverVersion > version then
 
-    DownloadFile(UPDATE_URL, SCRIPT_PATH .. scriptName .. ".lua", function()
+   DownloadFile(UPDATE_URL, SCRIPT_PATH .. scriptName .. ".lua", function()
 
     ChatHandler:Print("New version v" .. serverVersion .. " was downloaded. Please reload the script manually." )
 
@@ -502,6 +473,7 @@ function AstorAram:Menu()
  Menu.auto:addParam("enableSell", "Enable Autosell", SCRIPT_PARAM_ONOFF, true)
 
  Menu.draw:addParam("enabled", "Enable Drawings", SCRIPT_PARAM_ONKEYTOGGLE, true, string.byte('V'))
+ Menu.draw:addParam("sprites", "Draw Sprites (Might lower FPS)", SCRIPT_PARAM_ONOFF, true)
  Menu.draw:addParam("drawMode", "Draw Script Mode", SCRIPT_PARAM_ONOFF, true)
  Menu.draw:addParam("drawNextBuy", "Draw Next Item", SCRIPT_PARAM_ONOFF, true)
  Menu.draw:addParam("drawRange", "Draw Champion Range", SCRIPT_PARAM_ONOFF, true)
@@ -509,7 +481,7 @@ function AstorAram:Menu()
 
  Menu.debug:addParam("enabled", "Enable Debug Mode", SCRIPT_PARAM_ONOFF, false)
 
- Menu.chat:addParam("enabled", "Enable Positive Attitude", SCRIPT_PARAM_ONOFF, true)
+ Menu.chat:addParam("enabled", "Enable Positive Attitude", SCRIPT_PARAM_ONOFF, false)
  Menu.chat:addParam("delay", "Chat Delay", SCRIPT_PARAM_SLICE, 200, 30, 500, 5)
 
  Menu.opts:permaShow("manualMode")
@@ -1169,6 +1141,12 @@ function DrawingHandler:__init()
   self:DrawStatus()
   self:DrawAARange()
 
+  if Menu.draw.sprites then
+
+    self:DrawFrame()
+
+  end
+
   if Menu.draw.drawNextBuy then
 
    self:DrawItem(shoplist[buyIndex], drawConstants.textStartX, drawConstants.textEndY)
@@ -1180,6 +1158,12 @@ function DrawingHandler:__init()
   end
 
  end
+
+end
+
+function DrawingHandler:DrawFrame()
+
+  frame:Draw(drawConstants.x - 20, drawConstants.y - 12, 0xFF)
 
 end
 
