@@ -12,9 +12,14 @@
 	
 		Changelog:
 		
-		  04/10/2014 - v1.11
-		    [new] Initiated the github repo
-		    [removed] Bol tracker as it is not needed anymore
+			05/10/2014 - v1.12
+				[new] Skin hack is now toggled, it can be disabled
+				[update] Skin hack now has it's own subMenu
+				[update] cleared out some code.
+		
+		    	04/10/2014 - v1.11
+		        	[new] Initiated the github repo
+		        	[removed] Bol tracker as it is not needed anymore
 		    
 			26/09/2014 - v1.11
 				[bugfix] Fixed the loading errors - Astoriane
@@ -74,7 +79,7 @@
 			
 ]]--
 
-if myHero.charName ~= "Kogmaw" then return end
+if myHero.charName ~= ("Kogmaw" or "KogMaw") then return end
 
 local version = 4.20
 local AUTOUPDATE = false
@@ -158,7 +163,7 @@ local PassiveTracker = {status = false, startClock = 0, startPoint = nil, ms = n
 local LastPotCast = {red = 0, blue = 0, flask = 0}
 local Recalling
 
-local SkinList = {"Caterpillar Kog'Maw", "Sonoran Kog'Maw", "Monarch Kog'Maw", "Reindeer Kog'Maw", "Lion Dance Kog'Maw", "Deep Sea Kog'Maw", "Jurassic Kog'Maw", "Classic Skin"}
+local SkinList = {"Caterpillar Kog'Maw", "Sonoran Kog'Maw", "Monarch Kog'Maw", "Reindeer Kog'Maw", "Lion Dance Kog'Maw", "Deep Sea Kog'Maw", "Jurassic Kog'Maw", "Classic Kog'Maw"}
 local lastSkin = 0
 
 function OnLoad()
@@ -1006,8 +1011,11 @@ function __initMenu()
 	
 	-- Skins
 	if VIP_USER then
+        Menu:addSubMenu("[VIP] Skin", 'skins')
+        Menu.skins:addParam("enabled", "Enable Skin Changer", SCRIPT_PARAM_ONOFF, false)
+        Menu.skins:addParam("skin", "Skin", SCRIPT_PARAM_LIST, #SkinList, SkinList)
 		Menu:addParam("prediction", "Prediction", SCRIPT_PARAM_LIST, 1, {"VPrediction", "PROdiction"})
-		Menu:addParam("skin", "Skin", SCRIPT_PARAM_LIST, #SkinList, SkinList)
+		
 	end
 	
 	
@@ -1057,12 +1065,22 @@ function GenModelPacket(champ, skinId)
 end
 
 function SkinHack()
-	if Menu.skin ~= lastSkin and VIP_USER then
-		if lastskin == 0 and Menu.skin == #SkinList then
+	
+    if Menu.skins.enabled then
+
+        if Menu.skins.skin ~= lastSkin and VIP_USER then
+		  if lastskin == 0 and Menu.skins.skin == #SkinList then
 			return
-		else
-			lastSkin = Menu.skin
-			GenModelPacket("KogMaw", Menu.skin)
-		end
-	end
+		  else
+			lastSkin = Menu.skins.skin
+			GenModelPacket("KogMaw", Menu.skins.skin)
+		  end
+	   end
+
+    else
+
+        lastSkin = #SkinList
+        GenModelPacket("KogMaw", #SkinList)
+
+    end
 end
