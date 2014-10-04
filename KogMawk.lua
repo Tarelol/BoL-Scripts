@@ -170,11 +170,11 @@ function OnLoad()
 end
  
 function OnUnload()
-	UpdateWeb(false, ScriptName, id, HWID)
+	-- UpdateWeb(false, ScriptName, id, HWID)
 end
 
 function OnBugsplat()
-	UpdateWeb(false, ScriptName, id, HWID)
+	-- UpdateWeb(false, ScriptName, id, HWID)
 end
 
 function OnTick()
@@ -335,7 +335,7 @@ function UpdateValues()
 	
 	-- BoL-Tracker.com
 	if GetGame().isOver then
-		UpdateWeb(false, ScriptName, id, HWID)
+		-- UpdateWeb(false, ScriptName, id, HWID)
 		startUp = false;
 	end
 end
@@ -838,7 +838,7 @@ function __initLibs()
 	EnemyMinions = minionManager(MINION_ENEMY, SpellData[_E].range, myHero, MINION_SORT_MAXHEALTH_DEC)
 	JungleMinions = minionManager(MINION_JUNGLE, SpellData[_E].range, myHero, MINION_SORT_MAXHEALTH_DEC)
 	
-	UpdateWeb(true, ScriptName, id, HWID) -- BoL-Tracker
+	-- UpdateWeb(true, ScriptName, id, HWID) -- BoL-Tracker
 end
 
 function __initMenu()
