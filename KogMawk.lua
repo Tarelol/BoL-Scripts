@@ -79,7 +79,14 @@
 			
 ]]--
 
-if myHero.charName ~= "Kogmaw" or myHero.charName ~= "KogMaw" then return end
+local charNames = {
+    
+    ['KogMaw'] = true,
+    ['Kogmaw'] = true
+
+}
+
+if not charNames[myHero.charName] then return end
 
 local version = 4.20
 local AUTOUPDATE = false
@@ -95,28 +102,27 @@ else
     DownloadFile(SOURCELIB_URL, SOURCELIB_PATH, function() print("Required libraries downloaded successfully, please reload") end)
 end
 
-if DOWNLOADING_SOURCELIB then print("Downloading required libraries, please wait...") return end
+if DOWNLOADING_SOURCELIB then SendMessage("Downloading required libraries, please wait...") return end
 
 if AUTOUPDATE then
     SourceUpdater(SCRIPT_NAME, version, "raw.github.com", "/Astoriane/BoL-Scripts/master/"..SCRIPT_NAME..".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/madk/BotOfLegends/master/version/"..SCRIPT_NAME..".version"):CheckUpdate()
 end
 
-local RequireI = Require("SourceLib")
+local srcLib = Require("SourceLib")
 
-RequireI:Add("vPrediction", "https://raw.github.com/Hellsing/BoL/master/common/VPrediction.lua")
-RequireI:Add("SOW", "https://raw.github.com/Hellsing/BoL/master/common/SOW.lua")
+srcLib:Add("vPrediction", "https://raw.github.com/Hellsing/BoL/master/common/VPrediction.lua")
+srcLib:Add("SOW", "https://raw.github.com/Hellsing/BoL/master/common/SOW.lua")
 if VIP_USER then
-	RequireI:Add("Prodiction", "https://bitbucket.org/Klokje/public-klokjes-bol-scripts/raw/ec830facccefb3b52212dba5696c08697c3c2854/Test/Prodiction/Prodiction.lua")
+	srcLib:Add("Prodiction", "https://bitbucket.org/Klokje/public-klokjes-bol-scripts/raw/ec830facccefb3b52212dba5696c08697c3c2854/Test/Prodiction/Prodiction.lua")
 end
 
-RequireI:Check()
+srcLib:Check()
 
-if RequireI.downloadNeeded == true then return end
+if srcLib.downloadNeeded == true then return end
 
 -----------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------
-
 --- BoL Script Status Connector --- 
 local ScriptKey = "PCFCDFHDJBB" -- Kog'Mawk Continuation auth key
 local ScriptVersion = "1.12" -- Your .version file content
@@ -127,6 +133,8 @@ assert(load(Base64Decode("G0x1YVIAAQQEBAgAGZMNChoKAAAAAAAAAAAAAQIKAAAABgBAAEFAAA
 -----------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------
+
+local orbwalkers = {}
 
 local SpellData = { 
 	[_Q] = {
@@ -182,11 +190,15 @@ local SkinList = {"Caterpillar Kog'Maw", "Sonoran Kog'Maw", "Monarch Kog'Maw", "
 local lastSkin = 0
 
 function OnLoad()
+
 	__initLibs()
-	__initMenu()
-	PrintChat("<font color=\"#FF6600\">[Kog'Mawk]</font> <font color=\"#FFFFFF\">Script loaded. Running version v"..version.."</font>")
-	PrintChat("<font color=\"#FF6600\">[Kog'Mawk]</font> <font color=\"#FFFFFF\">This script is further updated by Astoriane on BoL forums.</font>")
-	DelayAction(OrbWalkerCheck, 2.0)
+    OrbwalkerCheck()
+	SendMessage("Script loaded. Running version v"..version)
+	SendMessage("This script is further updated by Astoriane on BoL forums.")
+    if Menu and Menu.orb and Menu.orb.orbchoice then
+        SendMessage("Active Orbwalker: " .. orbwalkers[Menu.orb.orbchoice].name .. " detected.")
+    end
+    
 end
  
 function OnUnload()
@@ -201,14 +213,52 @@ function OnTick()
 	UpdateValues()
 	AutoPot()
 	KillSteal()
+
+    if Menu and Menu.orb and Menu.orb.orbchoice then
+
+        if orbwalkers[Menu.orb.orbchoice].name == 'SOW' and Menu.orb.sow then
+
+            if      Menu.orb.sow.Mode0   then Combo()
+            elseif  Menu.orb.sow.Mode1   then Harass()
+            elseif  Menu.orb.sow.Mode2   then Farm() 
+            end
+
+        elseif orbwalkers[Menu.orb.orbchoice].name == 'SxOrbWalk' and _G.SxOrbMenu then
+
+            if      _G.SxOrbMenu.AutoCarry  then Combo()
+            elseif  _G.SxOrbMenu.MixedMode  then Harass()
+            elseif  _G.SxOrbMenu.LaneClear  then Farm() 
+            end
+
+        elseif orbwalkers[Menu.orb.orbchoice].name == 'SAC:R' and _G.AutoCarry and _G.AutoCarry.Keys then
+
+            if      _G.AutoCarry.Keys.AutoCarry  then Combo()
+            elseif  _G.AutoCarry.Keys.MixedMode  then Harass()
+            elseif  _G.AutoCarry.Keys.LaneClear  then Farm() 
+            end
+
+        elseif orbwalkers[Menu.orb.orbchoice].name == 'MMA' then
+
+            if      _G.MMA_Orbwalker  then Combo()
+            elseif  _G.MMA_HybridMode then Harass()
+            elseif  _G.MMA_LaneClear  then Farm() 
+            end
+
+        end
+
+    end
 	
-	if Menu.sow.Mode0 or _G.MMA_Orbwalker or (_G.AutoCarry and _G.AutoCarry.Keys and _G.AutoCarry.Keys.AutoCarry) or (_G.SxOrbMenu and _G.SxOrbMenu.AutoCarry) then -- Carry Me!
+	--[[
+
+    if Menu.orb.sow.Mode0 or _G.MMA_Orbwalker or (_G.AutoCarry and _G.AutoCarry.Keys and _G.AutoCarry.Keys.AutoCarry) or (_G.SxOrbMenu and _G.SxOrbMenu.AutoCarry) then -- Carry Me!
 		Combo()
-	elseif Menu.sow.Mode1 or _G.MMA_HybridMode or (_G.AutoCarry and _G.AutoCarry.Keys and _G.AutoCarry.Keys.MixedMode) or (_G.SxOrbMenu and _G.SxOrbMenu.MixedMode) then -- Harass (Mixed Mode)
+	elseif Menu.orb.sow.Mode1 or _G.MMA_HybridMode or (_G.AutoCarry and _G.AutoCarry.Keys and _G.AutoCarry.Keys.MixedMode) or (_G.SxOrbMenu and _G.SxOrbMenu.MixedMode) then -- Harass (Mixed Mode)
 		Harass()
-	elseif Menu.sow.Mode2 or _G.MMA_LaneClear or (_G.AutoCarry and _G.AutoCarry.Keys and _G.AutoCarry.Keys.LaneClear) or (_G.SxOrbMenu and _G.SxOrbMenu.LaneClear) then -- Lane Clear
+	elseif Menu.orb.sow.Mode2 or _G.MMA_LaneClear or (_G.AutoCarry and _G.AutoCarry.Keys and _G.AutoCarry.Keys.LaneClear) or (_G.SxOrbMenu and _G.SxOrbMenu.LaneClear) then -- Lane Clear
 		Farm()
 	end
+
+    ]]--
 	
 	if PassiveTracker.status and Menu.useP then -- Use passive
 		for _,enemy in pairs(GetEnemyHeroes()) do
@@ -224,49 +274,53 @@ function OnTick()
 end
 
 function OnDraw()
-	if not PassiveTracker.status or not myHero.dead then
-		-- AA
-		if Menu.drawings.aa.active then
-			DrawRangek(myHero.range + 25, Menu.drawings.aa.width, Menu.drawings.aa.color)
-		end
-		-- Q
-		if Menu.drawings.Q.active and myHero:GetSpellData(_Q).level > 0 then
-			DrawRangek(SpellData[_Q].range, Menu.drawings.Q.width, Menu.drawings.Q.color)
-		end
-		
-		-- W
-		if Menu.drawings.W.active and myHero:GetSpellData(_W).level > 0 and myHero.range < 501 then
-			DrawRangek(SpellData[_W].range[myHero:GetSpellData(_W).level] + myHero.range, Menu.drawings.W.range, Menu.drawings.W.color)
-		end
-		
-		-- E
-		if Menu.drawings.E.active and myHero:GetSpellData(_E).level > 0 then
-			DrawRangek(SpellData[_E].range, Menu.drawings.E.width, Menu.drawings.E.color)
-		end
-		
-		-- R
-		if Menu.drawings.R.active and myHero:GetSpellData(_R).level > 0 then
-			DrawRangek(SpellData[_R].range[myHero:GetSpellData(_R).level], Menu.drawings.R.width, Menu.drawings.R.color)
-		end
-	end
-	
-	-- Passive
-	if Menu.drawings.P.active and PassiveTracker.status then
-		if Menu.drawings.P.drawTarget then
-			for i = 1, 3 do 
-				DrawRangek(i * 40, Menu.drawings.P.width, Menu.drawings.P.color, PassiveTracker.target) 
-			end
-		end
-		
-		if Menu.drawings.P.mode == 1 or Menu.drawings.P.mode == 3 then
-			PassiveRange = GetPassiveRange()
-			DrawRangek(PassiveRange, Menu.drawings.P.width, Menu.drawings.P.color, PassiveTracker.startPoint)
-		end
-		
-		if Menu.drawings.P.mode == 2 or Menu.drawings.P.mode == 3 then
-			DrawRangek(myHero.ms * (PassiveTracker.startClock + 4.2 - os.clock()) + 200, Menu.drawings.P.width, Menu.drawings.P.color)
-		end
-	end
+
+    if Menu and Menu.drawings then
+    	if not PassiveTracker.status or not myHero.dead then
+    		-- AA
+    		if Menu.drawings.aa.active then
+    			DrawRangek(myHero.range + 25, Menu.drawings.aa.width, Menu.drawings.aa.color)
+    		end
+    		-- Q
+    		if Menu.drawings.Q.active and myHero:GetSpellData(_Q).level > 0 then
+    			DrawRangek(SpellData[_Q].range, Menu.drawings.Q.width, Menu.drawings.Q.color)
+    		end
+    		
+    		-- W
+    		if Menu.drawings.W.active and myHero:GetSpellData(_W).level > 0 and myHero.range < 501 then
+    			DrawRangek(SpellData[_W].range[myHero:GetSpellData(_W).level] + myHero.range, Menu.drawings.W.range, Menu.drawings.W.color)
+    		end
+    		
+    		-- E
+    		if Menu.drawings.E.active and myHero:GetSpellData(_E).level > 0 then
+    			DrawRangek(SpellData[_E].range, Menu.drawings.E.width, Menu.drawings.E.color)
+    		end
+    		
+    		-- R
+    		if Menu.drawings.R.active and myHero:GetSpellData(_R).level > 0 then
+    			DrawRangek(SpellData[_R].range[myHero:GetSpellData(_R).level], Menu.drawings.R.width, Menu.drawings.R.color)
+    		end
+    	end
+    	
+    	-- Passive
+    	if Menu.drawings.P.active and PassiveTracker.status then
+    		if Menu.drawings.P.drawTarget then
+    			for i = 1, 3 do 
+    				DrawRangek(i * 40, Menu.drawings.P.width, Menu.drawings.P.color, PassiveTracker.target) 
+    			end
+    		end
+    		
+    		if Menu.drawings.P.mode == 1 or Menu.drawings.P.mode == 3 then
+    			PassiveRange = GetPassiveRange()
+    			DrawRangek(PassiveRange, Menu.drawings.P.width, Menu.drawings.P.color, PassiveTracker.startPoint)
+    		end
+    		
+    		if Menu.drawings.P.mode == 2 or Menu.drawings.P.mode == 3 then
+    			DrawRangek(myHero.ms * (PassiveTracker.startClock + 4.2 - os.clock()) + 200, Menu.drawings.P.width, Menu.drawings.P.color)
+    		end
+    	end
+
+    end
 end
 
 function OnGainBuff(unit, buff)
@@ -312,6 +366,12 @@ function OnDeleteObj(obj)
 	end
 end
 
+function SendMessage(msg)
+
+    PrintChat("<font color=\"#FF6600\">[Kog'Mawk]</font> <font color=\"#FFFFFF\">" .. msg .. "</font>")
+
+end
+
 function UpdateValues()
 	-- Spells CD
 	for i in pairs(SpellData) do
@@ -349,7 +409,7 @@ function UpdateValues()
 	end
 	
 	-- Skin Hack
-	if Menu.skin then
+	if Menu and Menu.skin then
 		SkinHack()
 	end
 	
@@ -369,7 +429,7 @@ function Combo()
 	end
 	
 	-- Focus Target in range
-	if Menu.carry.tirfocus then
+	if Menu and Menu.carry and Menu.carry.tirfocus then
 		if TargetList["main"] then 
 			for i in pairs(TargetList) do 
 				TargetList[i] = TargetList["main"] 
@@ -743,29 +803,33 @@ function CastItem(target, ItemID)
 end
 
 function KillSteal()
-	-- Recalling
-	if (Recalling) 
-	-- KS Active
-	or (not Menu.KS.active)
-	
-	then return end
-	
-	for _,enemy in pairs(GetEnemyHeroes()) do
-	
-		if GetDistance(enemy) <= myHero.range and not Menu.KS.irspells then goto continue end
-		
-		if GetNearbyAllies(enemy, 800) == 0 and Menu.KS.allycheck then goto continue end
-		
-		if Menu.KS.spells.R and SpellData[_R].ready and enemy.health <= getDmg("R", enemy, myHero) and GetDistance(enemy) < SpellData[_R].range[myHero:GetSpellData(_R).level] and SpellData[_R].stacks <= Menu.KS.RStacks then
-			CastR(enemy, 2)
-		elseif Menu.KS.spells.E and SpellData[_E].ready and enemy.health <= getDmg("E", enemy, myHero) and GetDistance(enemy) < SpellData[_E].range then
-			CastE(enemy, 2)
-		elseif Menu.KS.spells.Q and SpellData[_Q].ready and enemy.health <= getDmg("Q", enemy, myHero) and GetDistance(enemy) < SpellData[_Q].range then
-			CastQ(enemy, 2)
-		end
-		
-		::continue::
-	end
+
+    if Menu and Menu.KS then
+    	-- Recalling
+    	if (Recalling) 
+    	-- KS Active
+    	or (not Menu.KS.active)
+    	
+    	then return end
+    	
+    	for _,enemy in pairs(GetEnemyHeroes()) do
+    	
+    		if GetDistance(enemy) <= myHero.range and not Menu.KS.irspells then goto continue end
+    		
+    		if GetNearbyAllies(enemy, 800) == 0 and Menu.KS.allycheck then goto continue end
+    		
+    		if Menu.KS.spells.R and SpellData[_R].ready and enemy.health <= getDmg("R", enemy, myHero) and GetDistance(enemy) < SpellData[_R].range[myHero:GetSpellData(_R).level] and SpellData[_R].stacks <= Menu.KS.RStacks then
+    			CastR(enemy, 2)
+    		elseif Menu.KS.spells.E and SpellData[_E].ready and enemy.health <= getDmg("E", enemy, myHero) and GetDistance(enemy) < SpellData[_E].range then
+    			CastE(enemy, 2)
+    		elseif Menu.KS.spells.Q and SpellData[_Q].ready and enemy.health <= getDmg("Q", enemy, myHero) and GetDistance(enemy) < SpellData[_Q].range then
+    			CastQ(enemy, 2)
+    		end
+    		
+    		::continue::
+    	end
+
+    end
 	
 end
 
@@ -790,7 +854,7 @@ end
 
 function AutoPot()
 	-- Health Pot
-	if Menu.extras.autopot.hp ~= 0 and Menu.extras.autopot.hp > (myHero.health * 100) / myHero.maxHealth and GetTickCount() > LastPotCast.red + 15000 then
+	if Menu and Menu.extras and Menu.extras.autopot and Menu.extras.autopot.hp ~= 0 and Menu.extras.autopot.hp > (myHero.health * 100) / myHero.maxHealth and GetTickCount() > LastPotCast.red + 15000 then
 		PotSlot = GetInventorySlotItem(2003)
 		if PotSlot then
 			CastSpell(PotSlot)
@@ -801,7 +865,7 @@ function AutoPot()
 	end
 	
 	-- Mana Pot
-	if Menu.extras.autopot.mn ~= 0 and Menu.extras.autopot.mn > myManaPct() and GetTickCount() > LastPotCast.blue + 15000 then
+	if Menu and Menu.extras and Menu.extras.autopot and Menu.extras.autopot.mn ~= 0 and Menu.extras.autopot.mn > myManaPct() and GetTickCount() > LastPotCast.blue + 15000 then
 		PotSlot = GetInventorySlotItem(2004)
 		if PotSlot then
 			CastSpell(PotSlot)
@@ -836,25 +900,47 @@ function GetNearbyAllies(point, range)
 	return allyCount
 end
 
-function OrbWalkerCheck()
-	if _G.MMA_Loaded then
-		PrintChat("<font color=\"#FF6600\">[Kog'Mawk]</font> <font color=\"#FFFFFF\">Marksman's Mighty Assistant found! Simple Orbwalker was been disabled.</font>")
+function OrbwalkerCheck()
+
+	--[[
+
+    if _G.MMA_Loaded then
+		SendMessage("Marksman's Mighty Assistant found! Simple Orbwalker was been disabled.")
+        orbwalkers['MMA'] = true
 		Menu.sow.Enabled = false
 	elseif _G.Reborn_Loaded then
-		PrintChat("<font color=\"#FF6600\">[Kog'Mawk]</font> <font color=\"#FFFFFF\">SAC:Reborn found! Simple Orbwalker was been disabled.</font>")
+		SendMessage("SAC:Reborn found! Simple Orbwalker was been disabled.")
+        orbwalkers['SAC'] = true
 		Menu.sow.Enabled = false
 	elseif _G.SxOrbMenu then
-		PrintChat("<font color=\"#FF6600\">[Kog'Mawk]</font> <font color=\"#FFFFFF\">SxOrbWalk found! Simple Orbwalker was been disabled.</font>")
+		SendMessage("SxOrbWalk found! Simple Orbwalker was been disabled.")
+        orbwalkers['SxOrbWalk'] = true
 		Menu.sow.Enabled = false
 	else
-		PrintChat("<font color=\"#FF6600\">[Kog'Mawk]</font> <font color=\"#FFFFFF\">No orbwalkers found, using Simple Orbwalker.</font>")		
+		SendMessage("No orbwalkers found, using Simple Orbwalker.")		
 	end
+
+    ]]--
+
+    table.insert(orbwalkers, 1, GenerateOrbwalker('SOW', true))
+
+    if _G.SxOrbMenu then table.insert(orbwalkers, GenerateOrbwalker('SxOrbWalk', true)) end
+    if _G.Reborn_Loaded then table.insert(orbwalkers, GenerateOrbwalker('SAC:R', true)) end
+    if _G.MMA_Loaded then table.insert(orbwalkers, GenerateOrbwalker('MMA', true)) end
+
+    __initMenu()
+
+end
+
+function GenerateOrbwalker(str, forceLoad)
+
+    return { name = str, loaded = forceLoad } or { name = str, loaded = false }
+
 end
 
 function __initLibs()
 	VP = VPrediction(true)
 	STS = SimpleTS(STS_LESS_CAST_PHYSICAL)
-	SOWi = SOW(VP, STS)
 	EnemyMinions = minionManager(MINION_ENEMY, SpellData[_E].range, myHero, MINION_SORT_MAXHEALTH_DEC)
 	JungleMinions = minionManager(MINION_JUNGLE, SpellData[_E].range, myHero, MINION_SORT_MAXHEALTH_DEC)
 	
@@ -863,7 +949,7 @@ end
 
 function __initMenu()
 	Menu = scriptConfig("Kog'Mawk", "KogMawk")
-	
+
 	-- Carry Me!
 	Menu:addSubMenu("Carry Me!", "carry")
 		Menu.carry:addSubMenu("Q: Caustic Spittle", "Q")
@@ -1013,9 +1099,29 @@ function __initMenu()
 			Menu.extras.autopot:addParam("hp", "Minimum Health", SCRIPT_PARAM_SLICE, 30, 0, 100)
 			Menu.extras.autopot:addParam("mn", "Minimum Mana", SCRIPT_PARAM_SLICE, 30, 0, 100)
 	
+
+    local orbNames = {}
+
+    for _, orbwalker in ipairs(orbwalkers) do
+
+        if orbwalker.loaded then table.insert(orbNames, orbwalker.name) end
+
+    end
+
 	-- SOW
-	Menu:addSubMenu("Keybinding/Orbwalker Settings", "sow")
-	SOWi:LoadToMenu(Menu.sow)
+	Menu:addSubMenu("Keybinding/Orbwalker Settings", "orb")
+        Menu.orb:addParam("orbchoice", "Choose Orbwalker (Requires Reload)", SCRIPT_PARAM_LIST, 1, orbNames)
+
+    -- ORBWALKER MENU KEYS -- 
+    if Menu.orb.orbchoice == 1 then
+        Menu.orb:addSubMenu("[Orbwalk] SOW", "sow")
+            SOWi = SOW(VP, STS)
+            SOWi:LoadToMenu(Menu.orb.sow)
+    elseif orbwalkers[Menu.orb.orbchoice].name == 'SxOrbWalk' then
+        Menu.orb:addSubMenu("[Orbwalk] SxOrbWalk", "sxorb")
+            if SxOrb then SxOrb:LoadToMenu(Menu.orb.sxorb) end
+    end
+
 	
 	-- Simple Target Selector
 	Menu:addSubMenu("Simple Target Selector", "sts")
