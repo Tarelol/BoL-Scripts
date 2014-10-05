@@ -79,7 +79,7 @@
 			
 ]]--
 
-if myHero.charName ~= ("Kogmaw" or "KogMaw") then return end
+if myHero.charName ~= "Kogmaw" or myHero.charName ~= "KogMaw" then return end
 
 local version = 4.20
 local AUTOUPDATE = false
