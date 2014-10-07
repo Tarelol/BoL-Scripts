@@ -21,9 +21,9 @@
 				[update] Skin hack now has it's own subMenu
 				[update] cleared out some code.
 		
-		    	04/10/2014 - v1.11
-		        	[new] Initiated the github repo
-		        	[removed] Bol tracker as it is not needed anymore
+		    04/10/2014 - v1.11
+		        [new] Initiated the github repo
+		        [removed] Bol tracker as it is not needed anymore
 		    
 			26/09/2014 - v1.11
 				[bugfix] Fixed the loading errors - Astoriane
@@ -200,6 +200,7 @@ function OnLoad()
 	SendMessage("Script loaded. Running version v"..version)
 	SendMessage("This script is further updated by Astoriane on BoL forums.")
     if Menu and Menu.orb and Menu.orb.orbchoice then
+        SOWi = SOW(VP, STS)
         SendMessage("Active Orbwalker: " .. orbwalkers[Menu.orb.orbchoice].name .. " detected.")
     end
     
@@ -364,6 +365,7 @@ function OnCreateObj(obj)
 		PassiveTracker.ms = myHero.ms
 	end
 end
+
 function OnDeleteObj(obj)
 	if obj ~= nil and obj.name:find("TeleportHome.troy") and Recalling then
 		Recalling = false
@@ -390,7 +392,10 @@ function UpdateValues()
 		end
 	end
 	
-	-- Targets
+	--[[ 
+
+    Targets
+
 	if _G.MMA_Loaded and _G.MMA_Target and _G.MMA_Target.type == myHero.type then
 		TargetList["main"] = _G.MMA_Target
 	elseif _G.AutoCarry and _G.AutoCarry.Crosshair and _G.AutoCarry.Attack_Crosshair and _G.AutoCarry.Attack_Crosshair.target and _G.AutoCarry.Attack_Crosshair.target.type == myHero.type then
@@ -398,6 +403,34 @@ function UpdateValues()
 	else
 		TargetList["main"] = STS:GetTarget(myHero.range)
 	end
+
+    ]]--
+
+    if Menu and Menu.orb and Menu.orb.orbchoice then
+
+        if orbwalkers[Menu.orb.orbchoice] == 'SxOrbWalk' then if SxOrb then TargetList["main"] = SxOrb:GetTarget() else TargetList["main"] = STS:GetTarget(myHero.range) end
+
+        elseif orbwalkers[Menu.orb.orbchoice] == 'SAC:R' then
+            if _G.AutoCarry and _G.AutoCarry.Crosshair and _G.AutoCarry.Attack_Crosshair and _G.AutoCarry.Attack_Crosshair.target and _G.AutoCarry.Attack_Crosshair.target.type == myHero.type then
+                TargetList["main"] = _G.AutoCarry.Attack_Crosshair.target
+            else
+                TargetList["main"] = STS:GetTarget(myHero.range)
+            end
+
+        elseif orbwalkers[Menu.orb.orbchoice] == 'MMA' then
+            if _G.MMA_Target and _G.MMA_Target.type == myHero.type then
+                TargetList["main"] = _G.MMA_Target
+            else
+                TargetList["main"] = STS:GetTarget(myHero.range)
+            end
+
+        else
+            TargetList["main"] = STS:GetTarget(myHero.range)
+        end
+
+    end
+
+
 	
 	TargetList[_Q] = STS:GetTarget(SpellData[_Q].range)
 	TargetList[_E] = STS:GetTarget(SpellData[_E].range)
@@ -417,11 +450,6 @@ function UpdateValues()
 		SkinHack()
 	end
 	
-	-- BoL-Tracker.com
-	if GetGame().isOver then
-		-- UpdateWeb(false, ScriptName, id, HWID)
-		startUp = false;
-	end
 end
 
 function Combo()
@@ -955,7 +983,7 @@ function __initMenu()
 	Menu = scriptConfig("Kog'Mawk", "KogMawk")
 
 	-- Carry Me!
-	Menu:addSubMenu("Carry Me!", "carry")
+	Menu:addSubMenu("Carry Mode", "carry")
 		Menu.carry:addSubMenu("Q: Caustic Spittle", "Q")
 			Menu.carry.Q:addParam("use", "Active", SCRIPT_PARAM_ONOFF, true)
 			Menu.carry.Q:addParam("mn", "Required Mana (%)", SCRIPT_PARAM_SLICE, 0, 0, 100)
@@ -1115,12 +1143,11 @@ function __initMenu()
 	-- SOW
 	Menu:addSubMenu("Keybinding/Orbwalker Settings", "orb")
         Menu.orb:addParam("orbchoice", "Choose Orbwalker (Requires Reload)", SCRIPT_PARAM_LIST, 1, orbNames)
+        Menu.orb:addSubMenu("[Orbwalk] SOW", "sow")
 
     -- ORBWALKER MENU KEYS -- 
     if Menu.orb.orbchoice == 1 then
 
-        Menu.orb:addSubMenu("[Orbwalk] SOW", "sow")
-            SOWi = SOW(VP, STS)
             SOWi:LoadToMenu(Menu.orb.sow)
 
     elseif orbwalkers[Menu.orb.orbchoice].name == 'SxOrbWalk' then
@@ -1129,7 +1156,6 @@ function __initMenu()
             if SxOrb then SxOrb:LoadToMenu(Menu.orb.sxorb) end
         
         Menu.orb:addSubMenu("[Orbwalk] SOW", "sow")
-            SOWi = SOW(VP, STS)
             SOWi:LoadToMenu(Menu.orb.sow)
 
         SendMessage("Using SxOrbwalk. Disabling Simple Orbwalker")
@@ -1139,7 +1165,6 @@ function __initMenu()
     else
 
         Menu.orb:addSubMenu("[Orbwalk] SOW", "sow")
-            SOWi = SOW(VP, STS)
             SOWi:LoadToMenu(Menu.orb.sow)
 
         SendMessage("Using " .. orbwalkers[Menu.orb.orbchoice].name .. ". Disabling Simple Orbwalker")
@@ -1149,7 +1174,7 @@ function __initMenu()
 
 	
 	-- Simple Target Selector
-	Menu:addSubMenu("Simple Target Selector", "sts")
+	Menu:addSubMenu("Target Selector", "sts")
 	STS:AddToMenu(Menu.sts)
 	
 	-- Passive
