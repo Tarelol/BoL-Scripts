@@ -1118,12 +1118,33 @@ function __initMenu()
 
     -- ORBWALKER MENU KEYS -- 
     if Menu.orb.orbchoice == 1 then
+
         Menu.orb:addSubMenu("[Orbwalk] SOW", "sow")
             SOWi = SOW(VP, STS)
             SOWi:LoadToMenu(Menu.orb.sow)
+
     elseif orbwalkers[Menu.orb.orbchoice].name == 'SxOrbWalk' then
+        
         Menu.orb:addSubMenu("[Orbwalk] SxOrbWalk", "sxorb")
             if SxOrb then SxOrb:LoadToMenu(Menu.orb.sxorb) end
+        
+        Menu.orb:addSubMenu("[Orbwalk] SOW", "sow")
+            SOWi = SOW(VP, STS)
+            SOWi:LoadToMenu(Menu.orb.sow)
+
+        SendMessage("Using SxOrbwalk. Disabling Simple Orbwalker")
+        Menu.orb.sow.Enabled = false
+
+
+    else
+
+        Menu.orb:addSubMenu("[Orbwalk] SOW", "sow")
+            SOWi = SOW(VP, STS)
+            SOWi:LoadToMenu(Menu.orb.sow)
+
+        SendMessage("Using " .. orbwalkers[Menu.orb.orbchoice].name .. ". Disabling Simple Orbwalker")
+        Menu.orb.sow.Enabled = false
+
     end
 
 	
