@@ -12,6 +12,10 @@
 	
 		Changelog:
 
+            09/10/2014 - v1.14
+                [bugfix] various fixes for the new orbwalking selector
+                [update] updated/cleaned for patch 4.18
+
             05/10/2014 - v1.13
                 [improved] You can now choose your preferred orbwalker.
                 [update] fix for both names of kog maw making script loadable in very version
@@ -193,16 +197,15 @@ local Recalling
 local SkinList = {"Caterpillar Kog'Maw", "Sonoran Kog'Maw", "Monarch Kog'Maw", "Reindeer Kog'Maw", "Lion Dance Kog'Maw", "Deep Sea Kog'Maw", "Jurassic Kog'Maw", "Classic Kog'Maw"}
 local lastSkin = 0
 
+local orbwalkerChekced = false
+
 function OnLoad()
 
 	__initLibs()
-    OrbwalkerCheck()
+    __initOrbwalker()
 	SendMessage("Script loaded. Running version v"..version)
 	SendMessage("This script is further updated by Astoriane on BoL forums.")
-    if Menu and Menu.orb and Menu.orb.orbchoice then
-        SOWi = SOW(VP, STS)
-        SendMessage("Active Orbwalker: " .. orbwalkers[Menu.orb.orbchoice].name .. " detected.")
-    end
+    if orbwalkerChekced then SendMessage("Active Orbwalker: " .. orbwalkers[Menu.orb.orbchoice].name .. " detected.") end
     
 end
  
@@ -932,7 +935,7 @@ function GetNearbyAllies(point, range)
 	return allyCount
 end
 
-function OrbwalkerCheck()
+function __initOrbwalker()
 
 	--[[
 
@@ -960,6 +963,8 @@ function OrbwalkerCheck()
     if _G.Reborn_Loaded then table.insert(orbwalkers, GenerateOrbwalker('SAC:R', true)) end
     if _G.MMA_Loaded then table.insert(orbwalkers, GenerateOrbwalker('MMA', true)) end
 
+    if not orbwalkerChecked then orbwalkerChekced = true end
+
     __initMenu()
 
 end
@@ -973,6 +978,7 @@ end
 function __initLibs()
 	VP = VPrediction(true)
 	STS = SimpleTS(STS_LESS_CAST_PHYSICAL)
+    SOWi = SOW(VP, STS)
 	EnemyMinions = minionManager(MINION_ENEMY, SpellData[_E].range, myHero, MINION_SORT_MAXHEALTH_DEC)
 	JungleMinions = minionManager(MINION_JUNGLE, SpellData[_E].range, myHero, MINION_SORT_MAXHEALTH_DEC)
 	
@@ -1143,29 +1149,24 @@ function __initMenu()
 	-- SOW
 	Menu:addSubMenu("Keybinding/Orbwalker Settings", "orb")
         Menu.orb:addParam("orbchoice", "Choose Orbwalker (Requires Reload)", SCRIPT_PARAM_LIST, 1, orbNames)
+
+    if Menu.orb and Menu.orb.orbchoice and Menu.orb.orbchoice ~= nil then
         Menu.orb:addSubMenu("[Orbwalk] SOW", "sow")
+        SOWi:LoadToMenu(Menu.orb.sow)
+    end
 
     -- ORBWALKER MENU KEYS -- 
-    if Menu.orb.orbchoice == 1 then
-
-            SOWi:LoadToMenu(Menu.orb.sow)
-
-    elseif orbwalkers[Menu.orb.orbchoice].name == 'SxOrbWalk' then
+    if orbwalkers[Menu.orb.orbchoice].name == 'SxOrbWalk' then
         
         Menu.orb:addSubMenu("[Orbwalk] SxOrbWalk", "sxorb")
-            if SxOrb then SxOrb:LoadToMenu(Menu.orb.sxorb) end
         
-        Menu.orb:addSubMenu("[Orbwalk] SOW", "sow")
-            SOWi:LoadToMenu(Menu.orb.sow)
+        if SxOrb then SxOrb:LoadToMenu(Menu.orb.sxorb) end
 
         SendMessage("Using SxOrbwalk. Disabling Simple Orbwalker")
         Menu.orb.sow.Enabled = false
 
 
-    else
-
-        Menu.orb:addSubMenu("[Orbwalk] SOW", "sow")
-            SOWi:LoadToMenu(Menu.orb.sow)
+    elseif Menu.orb.orbchoice ~= 1 then
 
         SendMessage("Using " .. orbwalkers[Menu.orb.orbchoice].name .. ". Disabling Simple Orbwalker")
         Menu.orb.sow.Enabled = false
