@@ -4,7 +4,7 @@
 
 ]]
 
-if myHero.charName ~= "" then return end
+if myHero.charName ~= "Morgana" then return end
 
 local ScriptName = "SuppPlox"
 local ScriptVersion = 0.1
@@ -24,13 +24,13 @@ if FileExist(SrcLibPath) then
 else
 
     SrcLibDownload = true
-    DownloadFile(SrcLibURL, SrcLibPath, function() SendMessage("Downloaded SourceLib, please reload. (Double F9)") end)
+    DownloadFile(SrcLibURL, SrcLibPath, function() PrintChat("Downloaded SourceLib, please reload. (Double F9)") end)
 
 end
 
 if SrcLibDownload == true then
 
-    SendMessage("SourceLib was not found. Downloading...")
+    PrintChat("SourceLib was not found. Downloading...")
     return
 
 end
@@ -54,12 +54,12 @@ local SpellTable = {
     
     [_Q] = {
 
-        name = "",
+        name = "Dark Binding",
         ready = false,
-        range = 0,
-        width = 0,
-        speed = 0,
-        delay = 0,
+        range = 1175,
+        width = 100,
+        speed = 1200,
+        delay = 300,
         self = false,
         ally = false
 
@@ -67,11 +67,10 @@ local SpellTable = {
 
     [_W] = {
 
-        name = "",
+        name = "Tormented Soil",
         ready = false,
-        range = 0,
-        width = 0,
-        speed = 0,
+        range = 900,
+        width = 350,
         delay = 0,
         self = false,
         ally = false
@@ -80,26 +79,22 @@ local SpellTable = {
 
     [_E] = {
 
-        name = "",
+        name = "Black Shield",
         ready = false,
-        range = 0,
-        width = 0,
-        speed = 0,
-        delay = 0,
-        self = false,
-        ally = false
+        range = 750,
+        self = true,
+        ally = true
 
     },
 
     [_R] = {
 
-        name = "",
+        name = "Soul Shackles",
         ready = false,
-        range = 0,
-        width = 0,
-        speed = 0,
-        delay = 0,
-        self = false,
+        range = 600,
+        tetherRange = 1050,
+        delay = 500,
+        self = true,
         ally = false
 
     }
@@ -191,7 +186,6 @@ function __initMenu()
         Menu.keys:addParam("harass", "Harass Mode Key:", SCRIPT_PARAM_ONKEYDOWN, false, string.byte('C'))
         Menu.keys:addParam("farm", "Lane Clear Mode Key:", SCRIPT_PARAM_ONKEYDOWN, false, string.byte('V'))
 
-
     Menu:addSubMenu("[" .. myHero.charName.. "] Combo", "combo")
         Menu.combo:addParam("useQ", "Enable Q (".. SpellTable[_Q].name ..")", SCRIPT_PARAM_ONOFF, true)
         Menu.combo:addParam("useW", "Enable W (".. SpellTable[_W].name ..")", SCRIPT_PARAM_ONOFF, true)
@@ -218,7 +212,7 @@ function __initMenu()
     Menu:addSubMenu("[" .. myHero.charName.. "] Items", "item")
         for ItemID, Values in pairs(ItemTable) do
 
-            Menu.item:addParam(string.lower(tostring(Values.id)), "Enable " .. tostring(Values.name), SCRIPT_PARAM_ONOFF, true)
+            Menu.item:addParam(string.lower(tostring(Values.id)), "Enable " .. tostring(Values.name), SCRIPT_PARAM_ONOFF, false)
 
         end
 
@@ -320,12 +314,6 @@ function Update()
     end
     -- MAIN TARGET --
 
-    -- SKILL TARGETS --
-    -- TargetList[_Q] = STS:GetTarget(SpellTable[_Q].range or (if SpellTable[_Q].ally then GetClosestAlly() end) or (if SpellTable[_Q].self then myHero end) or nil)
-    -- TargetList[_W] = STS:GetTarget(SpellTable[_W].range or (if SpellTable[_W].ally then GetClosestAlly() end) or (if SpellTable[_W].self then myHero end) or nil)
-    -- TargetList[_E] = STS:GetTarget(SpellTable[_E].range or (if SpellTable[_E].ally then GetClosestAlly() end) or (if SpellTable[_E].self then myHero end) or nil)
-    -- TargetList[_R] = STS:GetTarget(SpellTable[_R].range or (if SpellTable[_R].ally then GetClosestAlly() end) or (if SpellTable[_R].self then myHero end) or nil)
-    -- SKILL TARGETS --
 
 end
 
@@ -341,7 +329,36 @@ function Farm()
 
 end
 
-function CastQ()
+function CastQ(target, chance, vp)
+
+    if not target or not ValidTarget(target) then return end
+
+    chance = chance or 2
+
+    local castPos, castInfo, hitChance
+
+    if VIP_USER and Menu.misc.pred == 1 and not vp then
+
+        castPos, castInfo = Prodiction.GetPrediction(target, SpellTable[_Q].range, SpellTable[_Q].speed, SpellTable[_Q].delay, SpellTable[_Q].width, myHero)
+
+        if castInfo.mCollision() then return end
+        hitChance = tonumber(castInfo.hitchance)
+
+    else
+
+        castPos, hitChance = VP:GetLineCastPosition(target, SpellTable[_Q].delay, SpellTable[_Q].width, SpellTable[_Q].range, SpellTable[_Q].speed, myHero, true)
+
+    end
+
+    if hitChance and hitChance >= chance and SpellTable[_Q].ready then
+
+        if Menu.misc.packet then 
+            Packet("S_CAST", GenerateSpellPacket(_Q, castPos.x, castPos.y, myHero.x, myHero.y))
+        else 
+            CastSpell(_Q, castPos.x, castPos.z) 
+        end
+
+    end
 
 end
 
@@ -684,7 +701,7 @@ function DrawCircles()
 
             if Menu.draw.drawR and SpellTable[_R].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_R].range, ARGB(255,255,255,255)) end
 
-            if Menu.draw.drawTarget and GetTarget() ~= nil then DrawCircleLFC(GetTarget().x, GetTarget().y, GetTarget().z, 150, ARGB(255,255,255,255)) end
+            if Menu.draw.drawTarget and GetTarget() and GetTarget() ~= nil then DrawCircleLFC(GetTarget().x or 1, GetTarget().y or 1, GetTarget().z or 1, 150, ARGB(255,255,255,255)) end
 
         else
 
@@ -698,7 +715,7 @@ function DrawCircles()
 
             if Menu.draw.drawR and SpellTable[_R].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_R].range, ARGB(255,255,255,255)) end
 
-            if Menu.draw.drawTarget and GetTarget() ~= nil then DrawCircle(GetTarget().x, GetTarget().y, GetTarget().z, 150, ARGB(255,255,255,255)) end
+            if Menu.draw.drawTarget and GetTarget() and GetTarget() ~= nil then DrawCircle(GetTarget().x or 1, GetTarget().y or 1, GetTarget().z or 1, 150, ARGB(255,255,255,255)) end
 
         end
 
@@ -709,7 +726,6 @@ end
 function DrawText()
 
 end
-
 
 -- SUPP PLOX GLOBAL FUNCTIONS --
 function myManaPct() return (myHero.mana * 100) / myHero.maxMana end
