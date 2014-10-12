@@ -113,7 +113,7 @@ end
 if DOWNLOADING_SOURCELIB then SendMessage("Downloading required libraries, please wait...") return end
 
 if AUTOUPDATE then
-    SourceUpdater(SCRIPT_NAME, version, "raw.github.com", "/Astoriane/BoL-Scripts/master/"..SCRIPT_NAME..".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/madk/BotOfLegends/master/version/"..SCRIPT_NAME..".version"):CheckUpdate()
+    SourceUpdater(SCRIPT_NAME, version, "raw.github.com", "/Astoriane/BoL-Scripts/master/"..SCRIPT_NAME..".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/Astoriane/BoL-Scripts/master/version/"..SCRIPT_NAME..".version"):CheckUpdate()
 end
 
 local srcLib = Require("SourceLib")
