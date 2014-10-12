@@ -1,6 +1,6 @@
 --[[
 
-    GIBE SUPPORT PLOX v0.1 - Astoriane Support Bundle - Morgana
+    GIBE SUPPORT PLOX v0.1 - Astoriane Support Bundle - TEMPLATE
 
 ]]
 
@@ -14,7 +14,16 @@ local SrcLibURL = "https://raw.github.com/TheRealSource/public/master/common/Sou
 local SrcLibPath = LIB_PATH .. "SourceLib.lua"
 local SrcLibDownload = false
 
+local UPDATE_HOST = "raw.github.com"
+local UPDATE_PATH = "Astoriane/BoL-Scripts/SuppPlox/master/" .. ScriptName .. " - " .. myHero.charName .. ".lua"
+
 local orbwalker = "SOW"
+
+function SendMessage(msg)
+
+    PrintChat("<font color='#7D1935'><b>[" .. ScriptName .. " " .. myHero.charName .. "]</b> </font><font color='#FFFFFF'>" .. tostring(msg) .. "</font>")
+
+end
 
 if FileExist(SrcLibPath) then
 
@@ -37,7 +46,7 @@ end
 
 if AutoUpdate then
 
-    SourceUpdater(ScriptName .. " - " .. myHero.charName, tostring(ScriptVersion), "raw.github.com", "Astoriane/BoL-Scripts/SuppPlox/master/" .. ScriptName .. " - " .. myHero.charName .. ".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME):CheckUpdate()
+    SourceUpdater(ScriptName .. " - " .. myHero.charName, tostring(ScriptVersion), UPDATE_HOST, UPDATE_PATH, SCRIPT_PATH .. GetCurrentEnv().FILE_NAME):CheckUpdate()
 
 end
 
@@ -120,6 +129,7 @@ local Recalling
 
 function OnLoad()
 
+    __load()
     __initLibs()
     __initMenu()
     __initOrbwalkers()
@@ -144,8 +154,7 @@ function OnDraw()
 
     if not _G.SuppPlox_Loaded then return end
 
-    DrawCircles()
-    DrawText()
+    __draw()
 
 end
 
@@ -167,9 +176,10 @@ function OnDeleteObj(obj)
 
 end
 
-function SendMessage(msg)
+function __load()
 
-    PrintChat(msg)
+    SendMessage("SuppPlox by Astoriane")
+    SendMessage("Script version v" .. ScriptVersion .. " loaded for " .. myHero.charName)
 
 end
 
@@ -329,6 +339,7 @@ function Update()
 
 end
 
+-- SCRIPT FUNCTIONS --
 function Combo()
 
 end
@@ -340,7 +351,9 @@ end
 function Farm()
 
 end
+-- SCRIPT FUNCTIONS --
 
+-- SKILL FUNCTIONS --
 function CastQ()
 
 end
@@ -356,6 +369,7 @@ end
 function CastR()
 
 end
+-- SKILL FUNCTIONS --
 
 function CanCastQ(mode, target)
 
@@ -668,37 +682,47 @@ function CanCastR(mode, target, min)
 
 end
 
+-- MAIN DRAW FUNCTION --
+function __draw()
+
+    DrawCircles()
+    DrawText()
+
+end
+-- MAIN DRAW FUNCION --
+
+-- DRAW FUNCTIONS -- 
 function DrawCircles()
 
     if Menu and Menu.draw and Menu.draw.enabled then
 
-        if Menu.draw.lfc then
+        if Menu.draw.lfc then -- LAG FREE CIRCLES
 
-            if Menu.draw.drawAA then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SOWi:MyRange() + 50, ARGB(255,255,255,255)) end
+            if Menu.draw.drawAA then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SOWi:MyRange() + 50, ARGB(255,255,255,255)) end -- DRAW AA RANGE
 
-            if Menu.draw.drawQ and SpellTable[_Q].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_Q].range, ARGB(255,255,255,255)) end
+            if Menu.draw.drawQ and SpellTable[_Q].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_Q].range, ARGB(255,255,255,255)) end -- DRAW Q RANGE
 
-            if Menu.draw.drawW and SpellTable[_W].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_W].range, ARGB(255,255,255,255)) end
+            if Menu.draw.drawW and SpellTable[_W].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_W].range, ARGB(255,255,255,255)) end -- DRAW W RANGE
 
-            if Menu.draw.drawE and SpellTable[_E].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_E].range, ARGB(255,255,255,255)) end
+            if Menu.draw.drawE and SpellTable[_E].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_E].range, ARGB(255,255,255,255)) end -- DRAW E RANGE
 
-            if Menu.draw.drawR and SpellTable[_R].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_R].range, ARGB(255,255,255,255)) end
+            if Menu.draw.drawR and SpellTable[_R].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_R].range, ARGB(255,255,255,255)) end -- DRAW R RANGE
 
-            if Menu.draw.drawTarget and GetTarget() ~= nil then DrawCircleLFC(GetTarget().x, GetTarget().y, GetTarget().z, 150, ARGB(255,255,255,255)) end
+            if Menu.draw.drawTarget and GetTarget() ~= nil then DrawCircleLFC(GetTarget().x, GetTarget().y, GetTarget().z, 150, ARGB(255,255,255,255)) end -- DRAW TARGET
 
-        else
+        else -- NORMAL CIRCLES
 
-            if Menu.draw.drawAA then DrawCircle(myHero.x, myHero.y, myHero.z, SOWi:MyRange() + 50, ARGB(255,255,255,255)) end
+            if Menu.draw.drawAA then DrawCircle(myHero.x, myHero.y, myHero.z, SOWi:MyRange() + 50, ARGB(255,255,255,255)) end -- DRAW AA RANGE
 
-            if Menu.draw.drawQ and SpellTable[_Q].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_Q].range, ARGB(255,255,255,255)) end
+            if Menu.draw.drawQ and SpellTable[_Q].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_Q].range, ARGB(255,255,255,255)) end -- DRAW Q RANGE
 
-            if Menu.draw.drawW and SpellTable[_W].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_W].range, ARGB(255,255,255,255)) end
+            if Menu.draw.drawW and SpellTable[_W].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_W].range, ARGB(255,255,255,255)) end -- DRAW W RANGE
 
-            if Menu.draw.drawE and SpellTable[_E].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_E].range, ARGB(255,255,255,255)) end
+            if Menu.draw.drawE and SpellTable[_E].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_E].range, ARGB(255,255,255,255)) end -- DRAW E RANGE
 
-            if Menu.draw.drawR and SpellTable[_R].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_R].range, ARGB(255,255,255,255)) end
+            if Menu.draw.drawR and SpellTable[_R].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_R].range, ARGB(255,255,255,255)) end -- DRAW R RANGE
 
-            if Menu.draw.drawTarget and GetTarget() ~= nil then DrawCircle(GetTarget().x, GetTarget().y, GetTarget().z, 150, ARGB(255,255,255,255)) end
+            if Menu.draw.drawTarget and GetTarget() ~= nil then DrawCircle(GetTarget().x, GetTarget().y, GetTarget().z, 150, ARGB(255,255,255,255)) end -- DRAW TARGET
 
         end
 
@@ -709,7 +733,7 @@ end
 function DrawText()
 
 end
-
+-- DRAW FUNCTIONS --
 
 -- SUPP PLOX GLOBAL FUNCTIONS --
 function myManaPct() return (myHero.mana * 100) / myHero.maxMana end

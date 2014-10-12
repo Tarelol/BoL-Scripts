@@ -14,7 +14,16 @@ local SrcLibURL = "https://raw.github.com/TheRealSource/public/master/common/Sou
 local SrcLibPath = LIB_PATH .. "SourceLib.lua"
 local SrcLibDownload = false
 
+local UPDATE_HOST = "raw.github.com"
+local UPDATE_PATH = "Astoriane/BoL-Scripts/SuppPlox/master/" .. ScriptName .. " - " .. myHero.charName .. ".lua"
+
 local orbwalker = "SOW"
+
+function SendMessage(msg)
+
+    PrintChat("<font color='#7D1935'><b>[" .. ScriptName .. " " .. myHero.charName .. "]</b> </font><font color='#FFFFFF'>" .. tostring(msg) .. "</font>")
+
+end
 
 if FileExist(SrcLibPath) then
 
@@ -24,20 +33,20 @@ if FileExist(SrcLibPath) then
 else
 
     SrcLibDownload = true
-    DownloadFile(SrcLibURL, SrcLibPath, function() PrintChat("Downloaded SourceLib, please reload. (Double F9)") end)
+    DownloadFile(SrcLibURL, SrcLibPath, function() SendMessage("Downloaded SourceLib, please reload. (Double F9)") end)
 
 end
 
 if SrcLibDownload == true then
 
-    PrintChat("SourceLib was not found. Downloading...")
+    SendMessage("SourceLib was not found. Downloading...")
     return
 
 end
 
 if AutoUpdate then
 
-    SourceUpdater(ScriptName .. " - " .. myHero.charName, tostring(ScriptVersion), "raw.github.com", "Astoriane/BoL-Scripts/SuppPlox/master/" .. ScriptName .. " - " .. myHero.charName .. ".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME):CheckUpdate()
+    SourceUpdater(ScriptName .. " - " .. myHero.charName, tostring(ScriptVersion), UPDATE_HOST, UPDATE_PATH, SCRIPT_PATH .. GetCurrentEnv().FILE_NAME):CheckUpdate()
 
 end
 
@@ -115,6 +124,7 @@ local Recalling
 
 function OnLoad()
 
+    __load()
     __initLibs()
     __initMenu()
     __initOrbwalkers()
@@ -139,8 +149,7 @@ function OnDraw()
 
     if not _G.SuppPlox_Loaded then return end
 
-    DrawCircles()
-    DrawText()
+    __draw()
 
 end
 
@@ -162,9 +171,10 @@ function OnDeleteObj(obj)
 
 end
 
-function SendMessage(msg)
+function __load()
 
-    PrintChat(msg)
+    SendMessage("SuppPlox by Astoriane")
+    SendMessage("Script version v" .. ScriptVersion .. " loaded for " .. myHero.charName)
 
 end
 
@@ -352,8 +362,9 @@ function CastQ(target, chance, vp)
 
     if hitChance and hitChance >= chance and SpellTable[_Q].ready then
 
-        if Menu.misc.packet then 
-            Packet("S_CAST", GenerateSpellPacket(_Q, castPos.x, castPos.y, myHero.x, myHero.y))
+        if VIP_USER and Menu.misc.packet then 
+            local packet = GenerateSpellPacket(_Q, castPos.x, castPos.z, castPos.x, castPos.z)
+            Packet("S_CAST", packet):send()
         else 
             CastSpell(_Q, castPos.x, castPos.z) 
         end
@@ -362,11 +373,56 @@ function CastQ(target, chance, vp)
 
 end
 
-function CastW()
+function CastW(target, chance, vp)
+
+    if not target or not ValidTarget(target) then return end
+
+    chance = chance or 2
+
+    local castPos, castInfo, hitChance
+
+    if VIP_USER and Menu.misc.pred == 1 and not vp then
+
+        castPos, castInfo = Prodiction.GetCircularAOEPrediction(target, SpellTable[_W].range, SpellTable[_W].speed, SpellTable[_W].delay, SpellTable[_W].width, myHero)
+        hitChance = tonumber(castInfo.hitchance)
+
+    else
+
+        castPos, hitChance, NTargets = VP:GetCircularAOECastPosition(target, SpellTable[_W].delay, SpellTable[_W].width, SpellTable[_W].range, SpellTable[_W].speed, myHero)
+
+    end
+
+    if hitChance and hitChance >= chance and SpellTable[_W].ready then
+
+        if VIP_USER and Menu.misc.packet then
+
+            local packet = GenerateSpellPacket(_W, castPos.x, castPos.z, castPos.x, castPos.z)
+            Packet("S_CAST", packet):send()
+
+        else
+
+            CastSpell(_W, castPos.x, castPos.z)
+
+        end
+
+    end
 
 end
 
-function CastE()
+function CastE(target)
+
+    if not target or target.team ~= myHero.team then return end
+
+        if VIP_USER and Menu.misc.packet then
+
+            local packet = GenerateSpellPacket(_E, target.networkID)
+            Packet("S_CAST", packet):send()
+
+        else
+
+            CastSpell(_E, target)
+
+        end
 
 end
 
@@ -531,15 +587,12 @@ end
 function CanCastE(mode, target)
 
     mode = mode or 1
-    target = target or TargetList[_E]
+    target = target or GetClosestAlly() or myHero
 
     if mode == 1 then -- CARRY MODE
 
         -- Spell not ready
         if (not SpellTable[_E].ready)
-
-        -- No target
-        or (not TargetList[_E])
 
         -- Disabled
         or (not Menu.carry.useE)
@@ -548,7 +601,7 @@ function CanCastE(mode, target)
         or (myManaPct() < Menu.carry.mana)
 
         -- Out of range
-        or (GetDistance(TargetList[_E]) > myHero.range + SpellTable[_E].range)
+        or (GetDistance(target) > myHero.range + SpellTable[_E].range)
 
         -- Disabled Target
         -- or (not Menu.skills.q[TargetList[_Q].hash])
@@ -558,44 +611,18 @@ function CanCastE(mode, target)
     elseif mode == 2 then -- MIXED MODE
 
         if myHero:GetSpellData(_E).level < 1 then return false end
-        MMTarget = STS:GetTarget(myHero.range + SpellTable[_E].range)
 
         -- Spell not ready
         if (not SpellTable[_E].ready)
-
-        -- No target
-        or (not MMTarget)
 
         -- Not enought mana
         or (myManaPct() < Menu.harass.mana)
 
-        -- Out of Range
-        or (GetDistance(MMTarget) > myHero.range + SpellTable[_E].range)
-
         -- Use on heroes
-        or (MMTarget.type ~= myHero.type)
+        or (target.type ~= myHero.type)
 
         -- Disabled Target
         -- (MMTarget.type == myHero.type and not Menu.skills.w[TargetList[_Q].hash])
-
-        then return false end
-
-    elseif mode == 3 then -- CLEAR MODE
-
-        -- Spell not ready
-        if (not SpellTable[_E].ready)
-
-        -- No Target
-        or (not target)
-
-        -- Disabled
-        or (not Menu.farm.useE)
-
-        -- Not enought mana
-        or (myManaPct() < Menu.farm.mana)
-
-        -- Out of range
-        or (GetDistance(target) > myHero.range + SpellTable[_E].range)
 
         then return false end
 
@@ -685,13 +712,20 @@ function CanCastR(mode, target, min)
 
 end
 
+function __draw()
+
+    DrawCircles()
+    DrawText()
+
+end
+
 function DrawCircles()
 
     if Menu and Menu.draw and Menu.draw.enabled then
 
         if Menu.draw.lfc then
 
-            if Menu.draw.drawAA then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SOWi:MyRange() + 50, ARGB(255,255,255,255)) end
+            if Menu.draw.drawAA then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SOWi:MyRange() + 50, ARGB(255,255,255,255)) end 
 
             if Menu.draw.drawQ and SpellTable[_Q].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_Q].range, ARGB(255,255,255,255)) end
 
