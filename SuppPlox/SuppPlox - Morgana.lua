@@ -1,13 +1,14 @@
 --[[
 
-    GIBE SUPPORT PLOX v0.1 - Astoriane Support Bundle - Morgana
+    GIBE SUPPORT PLOX v0.1 - Astoriane Support Bundle - TEMPLATE
 
 ]]
 
 if myHero.charName ~= "Morgana" then return end
 
-local ScriptName = "SuppPlox"
-local ScriptVersion = 0.1
+local _ScriptName = "SuppPlox"
+local _ScriptVersion = 0.1
+local _ScriptAuthor = "Astoriane"
 
 local AutoUpdate = false
 local SrcLibURL = "https://raw.github.com/TheRealSource/public/master/common/SourceLib.lua"
@@ -15,13 +16,13 @@ local SrcLibPath = LIB_PATH .. "SourceLib.lua"
 local SrcLibDownload = false
 
 local UPDATE_HOST = "raw.github.com"
-local UPDATE_PATH = "Astoriane/BoL-Scripts/SuppPlox/master/" .. ScriptName .. " - " .. myHero.charName .. ".lua"
+local UPDATE_PATH = "Astoriane/BoL-Scripts/SuppPlox/master/" .. _ScriptName .. " - " .. myHero.charName .. ".lua"
 
 local orbwalker = "SOW"
 
 function SendMessage(msg)
 
-    PrintChat("<font color='#7D1935'><b>[" .. ScriptName .. " " .. myHero.charName .. "]</b> </font><font color='#FFFFFF'>" .. tostring(msg) .. "</font>")
+    PrintChat("<font color='#7D1935'><b>[" .. _ScriptName .. " " .. myHero.charName .. "]</b> </font><font color='#FFFFFF'>" .. tostring(msg) .. "</font>")
 
 end
 
@@ -50,7 +51,7 @@ if AutoUpdate then
 
 end
 
-local libs = Require(ScriptName .. " Libs")
+local libs = Require(_ScriptName .. " Libs")
 libs:Add("VPrediction", "https://raw.githubusercontent.com/Hellsing/BoL/master/common/VPrediction.lua")
 libs:Add("SOW", "https://raw.githubusercontent.com/Hellsing/BoL/master/common/SOW.lua")
 libs:Add("Prodiction", "https://bitbucket.org/Klokje/public-klokjes-bol-scripts/raw/ec830facccefb3b52212dba5696c08697c3c2854/Test/Prodiction/Prodiction.lua")
@@ -59,74 +60,15 @@ libs:Check()
 
 if libs.downloadNeeded == true then return end
 
-local SpellTable = {
-    
-    [_Q] = {
-
-        name = "Dark Binding",
-        ready = false,
-        range = 1175,
-        width = 100,
-        speed = 1200,
-        delay = 300,
-        self = false,
-        ally = false
-
-    },
-
-    [_W] = {
-
-        name = "Tormented Soil",
-        ready = false,
-        range = 900,
-        width = 350,
-        delay = 0,
-        self = false,
-        ally = false
-
-    },
-
-    [_E] = {
-
-        name = "Black Shield",
-        ready = false,
-        range = 750,
-        self = true,
-        ally = true
-
-    },
-
-    [_R] = {
-
-        name = "Soul Shackles",
-        ready = false,
-        range = 600,
-        tetherRange = 1050,
-        delay = 500,
-        self = true,
-        ally = false
-
-    }
-
-}
-
-local ItemTable = {
-    
-    [3092] = { id = "fqc",      name = "Frost Queen's Claim",        range = 850, slot = nil, ready = false },
-    [3143] = { id = "ro",       name = "Randuin's Omen",             range = 500, slot = nil, ready = false },
-    [3190] = { id = "locket",   name = "Locket of the Iron Solari",  range = 600, slot = nil, ready = false },
-    [3222] = { id = "mc",       name = "Mikael's Crucible",          range = 600, slot = nil, ready = false }
-
-}
-
-local TargetList = {[_Q] = nil, [_W] = nil, [_E] = nil, [_R] = nil, ["main"] = nil}
 local Recalling
 
 function OnLoad()
 
+    __initVars()
     __load()
     __initLibs()
     __initMenu()
+    __initPriorities()
     __initOrbwalkers()
 
 end
@@ -134,6 +76,17 @@ end
 function OnTick()
 
     if not _G.SuppPlox_Loaded then return end
+
+    carryKey    = Menu.keys.carry
+    harassKey   = Menu.keys.harass
+    farmKey     = Menu.keys.farm
+
+    if carryKey     then Combo(Target)  end
+    if harassKey    then Harass(Target) end
+    if farmKey      then Farm()         end
+
+    if Menu.ks.enabled then KS() end
+    if Menu.ult.enabled then AutoUlt(Target) end
 
     Update()
 
@@ -171,58 +124,180 @@ function OnDeleteObj(obj)
 
 end
 
+-- INITIALIZE GLOBAL VARIABLES --
+function __initVars()
+
+    _G.SuppPlox_Loaded = false
+    _G.SuppPlox_AutoItems = true
+
+    SpellTable = {
+    
+        [_Q] = {
+
+            name = "Dark Binding",
+            ready = false,
+            range = 1175,
+            width = 70,
+            speed = 1200,
+            delay = 0,
+            self = false,
+            ally = false
+
+        },
+
+        [_W] = {
+
+            name = "Tormented Soil",
+            ready = false,
+            range = 900,
+            width = 175,
+            speed = 1200,
+            delay = 0.250,
+            self = false,
+            ally = false
+
+        },
+
+        [_E] = {
+
+            name = "Black Shield",
+            ready = false,
+            range = 750,
+            width = nil,
+            speed = nil,
+            delay = nil,
+            self = false,
+            ally = false
+
+        },
+
+        [_R] = {
+
+            name = "Soul Shackles",
+            ready = false,
+            range = 600,
+            width = nil,
+            speed = nil,
+            delay = nil,
+            self = false,
+            ally = false
+
+        }
+
+    }
+
+    ItemTable = {
+    
+        [3092] = { id = "frost",      name = "Frost Queen's Claim",        range = 850, slot = nil, ready = false },
+        [3143] = { id = "randuin",       name = "Randuin's Omen",             range = 500, slot = nil, ready = false },
+        [3190] = { id = "locket",   name = "Locket of the Iron Solari",  range = 600, slot = nil, ready = false },
+        [3222] = { id = "crucible",       name = "Mikael's Crucible",          range = 600, slot = nil, ready = false }
+
+    }
+
+    PriorityTable = {
+        AP = {
+            "Annie", "Ahri", "Akali", "Anivia", "Annie", "Azir", "Brand", "Cassiopeia", "Diana", "Evelynn", "FiddleSticks", "Fizz", "Gragas", "Heimerdinger", "Karthus",
+            "Kassadin", "Katarina", "Kayle", "Kennen", "Leblanc", "Lissandra", "Lux", "Malzahar", "Mordekaiser", "Morgana", "Nidalee", "Orianna",
+            "Ryze", "Sion", "Swain", "Syndra", "Teemo", "TwistedFate", "Veigar", "Viktor", "Vladimir", "Xerath", "Ziggs", "Zyra", "Velkoz"
+        },
+
+        Support = {
+            "Alistar", "Blitzcrank", "Braum", "Janna", "Karma", "Leona", "Lulu", "Nami", "Nunu", "Sona", "Soraka", "Taric", "Thresh", "Zilean", "Braum"
+        },
+
+        Tank = {
+            "Amumu", "Chogath", "DrMundo", "Galio", "Hecarim", "Malphite", "Maokai", "Nasus", "Rammus", "Sejuani", "Nautilus", "Shen", "Singed", "Skarner", "Volibear",
+            "Warwick", "Yorick", "Zac"
+        },
+
+        AD_Carry = {
+            "Ashe", "Caitlyn", "Corki", "Draven", "Ezreal", "Graves", "Jayce", "Jinx", "KogMaw", "Lucian", "MasterYi", "MissFortune", "Pantheon", "Quinn", "Shaco", "Sivir",
+            "Talon","Tryndamere", "Tristana", "Twitch", "Urgot", "Varus", "Vayne", "Yasuo", "Zed"
+        },
+
+        Bruiser = {
+            "Aatrox", "Darius", "Elise", "Fiora", "Gangplank", "Garen", "Irelia", "JarvanIV", "Jax", "Khazix", "LeeSin", "Nocturne", "Olaf", "Poppy",
+            "Renekton", "Rengar", "Riven", "Rumble", "Shyvana", "Trundle", "Udyr", "Vi", "MonkeyKing", "XinZhao"
+        }
+    }
+
+end
+
+-- LOAD SEQUENCE --
 function __load()
 
     SendMessage("SuppPlox by Astoriane")
-    SendMessage("Script version v" .. ScriptVersion .. " loaded for " .. myHero.charName)
+    SendMessage("Script version v" .. _ScriptVersion .. " loaded for " .. myHero.charName)
+
+    if _G.Activator then 
+        SendMessage("Activator Detected. Disabling AutoItems...")
+        if _G.SuppPlox_AutoItems == true then _G.SuppPlox_AutoItems = false end
+    else
+        SendMessage("Activator not Detected. Using SuppPlox_AutoItems")
+        if not _G.SuppPlox_AutoItems then _G.SuppPlox_AutoItems = true end
+    end
 
 end
 
+-- LIBRARY INITIALIZATION --
 function __initLibs()
 
     VP = VPrediction()
-    STS = SimpleTS(STS_PRIORITY)
     SOWi = SOW(VP)
     PROD = Prodiction
 
+    enemyMinions = minionManager(MINION_ENEMY, GetMaxRange(), myHero, MINION_SORT_HEALTH_ASC)
+
 end
 
+-- INITIALIZE MENU --
 function __initMenu()
 
-    Menu = scriptConfig("[" .. ScriptName .. "] " .. myHero.charName, "SuppPlox"..myHero.charName)
+    Menu = scriptConfig("[" .. _ScriptName .. "] " .. myHero.charName, "SuppPlox"..myHero.charName)
 
     Menu:addSubMenu("[" .. myHero.charName.. "] Keybindings", "keys")
         Menu.keys:addParam("carry", "Carry Mode Key:", SCRIPT_PARAM_ONKEYDOWN, false, 32)
         Menu.keys:addParam("harass", "Harass Mode Key:", SCRIPT_PARAM_ONKEYDOWN, false, string.byte('C'))
         Menu.keys:addParam("farm", "Lane Clear Mode Key:", SCRIPT_PARAM_ONKEYDOWN, false, string.byte('V'))
 
+
     Menu:addSubMenu("[" .. myHero.charName.. "] Combo", "combo")
         Menu.combo:addParam("useQ", "Enable Q (".. SpellTable[_Q].name ..")", SCRIPT_PARAM_ONOFF, true)
         Menu.combo:addParam("useW", "Enable W (".. SpellTable[_W].name ..")", SCRIPT_PARAM_ONOFF, true)
         Menu.combo:addParam("useE", "Enable E (".. SpellTable[_E].name ..")", SCRIPT_PARAM_ONOFF, true)
         Menu.combo:addParam("useR", "Enable R (".. SpellTable[_R].name ..")", SCRIPT_PARAM_ONOFF, true)
+        Menu.combo:addParam("minW", "Minimum targets to use W", SCRIPT_PARAM_SLICE, 1, 1, 4, 0)
+        Menu.combo:addParam("minR", "Minimum targets to use R", SCRIPT_PARAM_SLICE, 2, 1, 4, 0)
         Menu.combo:addParam("mana", "Min Mana For Combo", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
 
     Menu:addSubMenu("[" .. myHero.charName.. "] Harass", "harass")
         Menu.harass:addParam("useQ", "Enable Q (".. SpellTable[_Q].name ..")", SCRIPT_PARAM_ONOFF, true)
         Menu.harass:addParam("useW", "Enable W (".. SpellTable[_W].name ..")", SCRIPT_PARAM_ONOFF, true)
-        Menu.harass:addParam("useE", "Enable E (".. SpellTable[_E].name ..")", SCRIPT_PARAM_ONOFF, true)
-        Menu.harass:addParam("useR", "Enable R (".. SpellTable[_R].name ..")", SCRIPT_PARAM_ONOFF, true)
+        Menu.harass:addParam("minW", "Minimum targets to use W", SCRIPT_PARAM_SLICE, 1, 1, 4, 0)
         Menu.harass:addParam("mana", "Min Mana For Harass", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
 
     Menu:addSubMenu("[" .. myHero.charName.. "] Farm", "farm")
-        Menu.farm:addParam("useQ", "Enable Q (".. SpellTable[_Q].name ..")", SCRIPT_PARAM_ONOFF, true)
         Menu.farm:addParam("useW", "Enable W (".. SpellTable[_W].name ..")", SCRIPT_PARAM_ONOFF, true)
-        Menu.farm:addParam("useE", "Enable E (".. SpellTable[_E].name ..")", SCRIPT_PARAM_ONOFF, true)
         Menu.farm:addParam("mana", "Min Mana For Lane Clear", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
 
+    Menu:addSubMenu("[" .. myHero.charName.. "] Ultimate", "ult")
+        Menu.ult:addParam("minHp", "Don't ult if enemy HP Below: ", SCRIPT_PARAM_SLICE, 15, 0, 100, 0)
+        Menu.ult:addParam("heroHp", "Don't ult if my HP Below: ", SCRIPT_PARAM_SLICE, 5, 0, 100, 0)
+        Menu.ult:addParam("nil", "-- Auto Ult --", SCRIPT_PARAM_INFO, "")
+        Menu.ult:addParam("enabled", "Enable Auto Ult", SCRIPT_PARAM_ONOFF, true)
+        Menu.ult:addParam("min", "Minimum targets to ult", SCRIPT_PARAM_SLICE, 3, 1, 4, 0)
+
+    Menu:addSubMenu("[" .. myHero.charName.. "] Killsteal", "ks")
+        Menu.ks:addParam("enabled", "Enable Auto KS", SCRIPT_PARAM_ONOFF, false)
+
     Menu:addSubMenu("[" .. myHero.charName.. "] Orbwalk", "orbwalk")
-        SOWi:LoadToMenu(Menu.orbwalk, STS)
+        SOWi:LoadToMenu(Menu.orbwalk)
 
     Menu:addSubMenu("[" .. myHero.charName.. "] Items", "item")
         for ItemID, Values in pairs(ItemTable) do
 
-            Menu.item:addParam(string.lower(tostring(Values.id)), "Enable " .. tostring(Values.name), SCRIPT_PARAM_ONOFF, false)
+            Menu.item:addParam(string.lower(tostring(Values.id)), "Enable " .. tostring(Values.name), SCRIPT_PARAM_ONOFF, true)
 
         end
 
@@ -250,8 +325,23 @@ function __initMenu()
 
     end
 
+    TargetSelector = TargetSelector(TARGET_LESS_CAST_PRIORITY, 1250, DAMAGE_MAGIC, true)
+    TargetSelector.name = "Main Target"
+    Menu:addTS(TargetSelector)
+
+    if not _G.SuppPlox_AutoItems then 
+
+        for _, value in ipairs(ItemTable) do
+
+            Menu.item[value.id] = false
+
+        end
+				
+		end
+
 end
 
+-- DETECT AND INITIALIZE ORBWALKERS --
 function __initOrbwalkers()
 
     if _G.Reborn_Loaded then
@@ -278,6 +368,7 @@ function __initOrbwalkers()
 
 end
 
+-- TICK UPDATE --
 function Update()
 
     -- SKILLS --
@@ -296,112 +387,182 @@ function Update()
     end
     -- ITEMS --
 
-    -- MAIN TARGET --
-    if not Menu.orbwalk.enabled and (_G.Reborn_Loaded or _G.MMA_Loaded or _G.SxOrbMenu) then
+    TargetSelector:update()
+    Target = GetTarget()
 
-        if _G.Reborn_Loaded then
-            if _G.AutoCarry and _G.AutoCarry.Crosshair and _G.AutoCarry.Attack_Crosshair and _G.AutoCarry.Attack_Crosshair.target and _G.AutoCarry.Attack_Crosshair.target.type == myHero.type then
-                TargetList["main"] = _G.AutoCarry.Attack_Crosshair.target
-            else
-                TargetList["main"] = STS:GetTarget(myHero.range)
-            end
-        elseif _G.MMA_Loaded then
-            if _G.MMA_Target and _G.MMA_Target.type == myHero.type then
-                TargetList["main"] = _G.MMA_Target
-            else
-                TargetList["main"] = STS:GetTarget(myHero.range)
-            end
-        elseif _G.SxOrbMenu then
-            if SxOrb then
-                TargetList["main"] = SxOrb:GetTarget()
-            end
-        end
+end
 
-    else
+-- SCRIPT FUNCTIONS --
+function Combo(target)
 
-        TargetList["main"] = STS:GetTarget(math.max(SpellTable[_Q].range, SpellTable[_W].range, SpellTable[_E].range, SpellTable[_R].range, myHero.range))
+    if ValidTarget(target) and target ~= nil and target.type == myHero.type then
+
+        if myManaPct() >= Menu.combo.mana and Menu.combo.useQ then CastQ(target) end
+        if myManaPct() >= Menu.combo.mana and Menu.combo.useW then CastW(target) end
+        if myManaPct() >= Menu.combo.mana and Menu.combo.useR then CastR(target) end
 
     end
-    -- MAIN TARGET --
-
 
 end
 
-function Combo()
+function Harass(target)
 
-end
+    if ValidTarget(target) and target ~= nil and target.type == myHero.type and (myManaPct() >= Menu.harass.mana) then
 
-function Harass()
+        if Menu.harass.useQ then CastQ(target) end
+        if Menu.harass.useW then CastW(target) end
+
+    end
 
 end
 
 function Farm()
 
-end
+    enemyMinions:update()
 
-function CastQ(target, chance, vp)
+    if farmKey and not (myManaPct() < Menu.farm.mana) then
 
-    if not target or not ValidTarget(target) then return end
+        for i, minion in pairs(enemyMinions.objects) do
 
-    chance = chance or 2
+            if ValidTarget(minion) and minion ~= il then
 
-    local castPos, castInfo, hitChance
+                if Menu.farm.useW and GetDistance(minion) <= SpellTable[_W].range then
 
-    if VIP_USER and Menu.misc.pred == 1 and not vp then
+                    local pos, hit = GetBestCircularFarmPosition(SpellTable[_W].range, SpellTable[_W].width, enemyMinions.objects)
 
-        castPos, castInfo = Prodiction.GetPrediction(target, SpellTable[_Q].range, SpellTable[_Q].speed, SpellTable[_Q].delay, SpellTable[_Q].width, myHero)
+                    if pos ~= nil then
 
-        if castInfo.mCollision() then return end
-        hitChance = tonumber(castInfo.hitchance)
+                        if VIP_USER and Menu.misc.packet then
 
-    else
+                            local packet = GenerateSpellPacket(_W, pos.x, pos.z, pos.x, pos.z)
+                            Packet("S_CAST", packet):send()
 
-        castPos, hitChance = VP:GetLineCastPosition(target, SpellTable[_Q].delay, SpellTable[_Q].width, SpellTable[_Q].range, SpellTable[_Q].speed, myHero, true)
+                        else
 
-    end
+                            CastSpell(_W, pos.x, pos.z)
 
-    if hitChance and hitChance >= chance and SpellTable[_Q].ready then
+                        end
 
-        if VIP_USER and Menu.misc.packet then 
-            local packet = GenerateSpellPacket(_Q, castPos.x, castPos.z, castPos.x, castPos.z)
-            Packet("S_CAST", packet):send()
-        else 
-            CastSpell(_Q, castPos.x, castPos.z) 
+                    end
+
+                end
+
+            end
+
         end
 
     end
 
 end
 
-function CastW(target, chance, vp)
-
-    if not target or not ValidTarget(target) then return end
+-- SKILL FUNCTIONS --
+function CastQ(target, chance)
 
     chance = chance or 2
 
-    local castPos, castInfo, hitChance
+    if target ~= nil and GetDistance(target) <= SpellTable[_Q].range and SpellTable[_Q].ready then
 
-    if VIP_USER and Menu.misc.pred == 1 and not vp then
+        local castPos, hitChance, castInfo
 
-        castPos, castInfo = Prodiction.GetCircularAOEPrediction(target, SpellTable[_W].range, SpellTable[_W].speed, SpellTable[_W].delay, SpellTable[_W].width, myHero)
-        hitChance = tonumber(castInfo.hitchance)
+        if VIP_USER and Menu.misc.pred == 1 then -- PRODICTION
 
-    else
+            castPos, castInfo = PROD.GetPrediction(target, SpellTable[_Q].range, SpellTable[_Q].speed, SpellTable[_Q].delay, SpellTable[_Q].width, myHero)
+            hitChance = tonumber(castInfo.hitchance)
 
-        castPos, hitChance, NTargets = VP:GetCircularAOECastPosition(target, SpellTable[_W].delay, SpellTable[_W].width, SpellTable[_W].range, SpellTable[_W].speed, myHero)
+        else -- VPREDICTION
+
+            castPos, hitChance, pos = VP:GetLineCastPosition(target, SpellTable[_Q].delay, SpellTable[_Q].width, SpellTable[_Q].range, SpellTable[_Q].speed, myHero, true)
+
+        end
+
+        if hitChance >= chance then
+
+            if VIP_USER and Menu.misc.packet then -- PacketCast
+
+                local packet = GenerateSpellPacket(_Q, castPos.x, castPos.z, castPos.x, castPos.z)
+                Packet("S_CAST", packet):send()
+
+            else -- Non-Packet Cast
+
+                CastSpell(_Q, castPos.x, castPos.z)
+
+            end
+
+        end
 
     end
 
-    if hitChance and hitChance >= chance and SpellTable[_W].ready then
+end
 
-        if VIP_USER and Menu.misc.packet then
+function CastW(target, chance)
 
-            local packet = GenerateSpellPacket(_W, castPos.x, castPos.z, castPos.x, castPos.z)
-            Packet("S_CAST", packet):send()
+    chance = chance or 2
 
-        else
+    if target ~= nil and GetDistance(target) <= SpellTable[_W].range and SpellTable[_W].ready then
 
-            CastSpell(_W, castPos.x, castPos.z)
+        local aoeCastPos, mainHitChance, castInfo, nTargets
+
+        if VIP_USER and Menu.misc.pred == 1 then -- PRODICTION
+
+                aoeCastPos, castInfo = PROD.GetCircularAOEPrediction(target, SpellTable[_W].range, SpellTable[_W].speed, SpellTable[_W].delay, SpellTable[_W].width, myHero)
+                mainHitChance = tonumber(castInfo.hitchance)
+
+                if mainHitChance >= chance then
+
+                    if Menu.misc.packet then
+
+                        local packet = GenerateSpellPacket(_W, aoeCastPos.x, aoeCastPos.z, aoeCastPos.x, aoeCastPos.z)
+                        Packet("S_CAST", packet):send()
+
+                    else
+
+                        CastSpell(_W, aoeCastPos.x, aoeCastPos.z)
+
+                    end
+
+                end
+
+        else -- VPREDICTION
+
+            aoeCastPos, mainHitChance, nTargets = VP:GetCircularAOECastPosition(target, SpellTable[_W].delay, SpellTable[_W].width, SpellTable[_W].range, SpellTable[_W].speed, myHero)
+
+            if Menu.keys.carry then
+
+                if nTargets >= Menu.combo.minW then
+
+                    if VIP_USER and Menu.misc.packet then
+
+                        local packet = GenerateSpellPacket(_W, aoeCastPos.x, aoeCastPos.z, aoeCastPos.x, aoeCastPos.z)
+                        Packet("S_CAST", packet):send()
+
+                    else
+
+                        CastSpell(_W, aoeCastPos.x, aoeCastPos.z)
+
+                    end
+
+                end
+
+            end
+
+            if Menu.keys.harass then
+
+                if nTargets >= Menu.harass.minW then
+
+                    if VIP_USER and Menu.misc.packet then
+
+                        local packet = GenerateSpellPacket(_W, aoeCastPos.x, aoeCastPos.z, aoeCastPos.x, aoeCastPos.z)
+                        Packet("S_CAST", packet):send()
+
+                    else
+
+                        CastSpell(_W, aoeCastPos.x, aoeCastPos.z)
+
+                    end
+
+                end
+
+            end
 
         end
 
@@ -411,11 +572,11 @@ end
 
 function CastE(target)
 
-    if not target or target.team ~= myHero.team then return end
+    if SpellTable[_E].ready and GetDistance(target) <= SpellTable[_E].range then
 
         if VIP_USER and Menu.misc.packet then
 
-            local packet = GenerateSpellPacket(_E, target.networkID)
+            local packet = GenerateSpellPacket(_E, target)
             Packet("S_CAST", packet):send()
 
         else
@@ -424,332 +585,116 @@ function CastE(target)
 
         end
 
-end
-
-function CastR()
+    end
 
 end
 
-function CanCastQ(mode, target)
+function CastR(target)
 
-    mode = mode or 1
-    target = target or TargetList[_Q]
+    if SpellTable[_R].ready and ((targetHealthPct(myHero) >= Menu.ult.heroHP) and (targetHealthPct(target) >= Menu.ult.minHp)) then
 
-    if mode == 1 then -- CARRY MODE
+        if CountEnemyHeroInRange(SpellTable[_R].range) >= Menu.combo.minR then
+				
+						if Menu.combo.useE then CastE(myHero) end
 
-        -- Spell not ready
-        if (not SpellTable[_Q].ready)
+            if VIP_USER and Menu.misc.packet then
 
-        -- No target
-        or (not TargetList[_Q])
+                local packet = GenerateSpellPacket(_R)
+                Packet("S_CAST", packet):send()
 
-        -- Disabled
-        or (not Menu.carry.useQ)
+            else
 
-        -- Not enought mana
-        or (myManaPct() < Menu.carry.mana)
+                CastSpell(_R)
 
-        -- Out of range
-        or (GetDistance(TargetList[_Q]) > myHero.range + SpellTable[_Q].range)
+            end
 
-        -- Disabled Target
-        -- or (not Menu.skills.q[TargetList[_Q].hash])
-
-        then return false end
-
-    elseif mode == 2 then -- MIXED MODE
-
-        if myHero:GetSpellData(_Q).level < 1 then return false end
-        MMTarget = STS:GetTarget(myHero.range + SpellTable[_Q].range)
-
-        -- Spell not ready
-        if (not SpellTable[_Q].ready)
-
-        -- No target
-        or (not MMTarget)
-
-        -- Not enought mana
-        or (myManaPct() < Menu.harass.mana)
-
-        -- Out of Range
-        or (GetDistance(MMTarget) > myHero.range + SpellTable[_Q].range)
-
-        -- Use on heroes
-        or (MMTarget.type ~= myHero.type)
-
-        -- Disabled Target
-        -- (MMTarget.type == myHero.type and not Menu.skills.w[TargetList[_Q].hash])
-
-        then return false end
-
-    elseif mode == 3 then -- CLEAR MODE
-
-        -- Spell not ready
-        if (not SpellTable[_Q].ready)
-
-        -- No Target
-        or (not target)
-
-        -- Disabled
-        or (not Menu.farm.useQ)
-
-        -- Not enought mana
-        or (myManaPct() < Menu.farm.mana)
-
-        -- Out of range
-        or (GetDistance(target) > myHero.range + SpellTable[_Q].range)
-
-        then return false end
+        end
 
     end
 
-    return true
-
 end
 
-function CanCastW(mode, target)
+function AutoUlt(target)
 
-    mode = mode or 1
-    target = target or TargetList[_W]
+    if SpellTable[_R].ready and ((targetHealthPct(myHero) >= Menu.ult.heroHP) and (targetHealthPct(target) >= Menu.ult.minHp)) then
 
-    if mode == 1 then -- CARRY MODE
+        if CountEnemyHeroInRange(SpellTable[_R].range) >= Menu.ult.min then
 
-        -- Spell not ready
-        if (not SpellTable[_W].ready)
+            if VIP_USER and Menu.misc.packet then
 
-        -- No target
-        or (not TargetList[_W])
+                local packet = GenerateSpellPacket(_R)
+                Packet("S_CAST", packet):send()
 
-        -- Disabled
-        or (not Menu.carry.useW)
+            else
 
-        -- Not enought mana
-        or (myManaPct() < Menu.carry.mana)
+                CastSpell(_R)
 
-        -- Out of range
-        or (GetDistance(TargetList[_W]) > myHero.range + SpellTable[_W].range)
+            end
 
-        -- Disabled Target
-        -- or (not Menu.skills.q[TargetList[_W].hash])
-
-        then return false end
-
-    elseif mode == 2 then -- MIXED MODE
-
-        if myHero:GetSpellData(_W).level < 1 then return false end
-        MMTarget = STS:GetTarget(myHero.range + SpellTable[_W].range)
-
-        -- Spell not ready
-        if (not SpellTable[_W].ready)
-
-        -- No target
-        or (not MMTarget)
-
-        -- Not enought mana
-        or (myManaPct() < Menu.harass.mana)
-
-        -- Out of Range
-        or (GetDistance(MMTarget) > myHero.range + SpellTable[_W].range)
-
-        -- Use on heroes
-        or (MMTarget.type ~= myHero.type)
-
-        -- Disabled Target
-        -- (MMTarget.type == myHero.type and not Menu.skills.w[TargetList[_Q].hash])
-
-        then return false end
-
-    elseif mode == 3 then -- CLEAR MODE
-
-        -- Spell not ready
-        if (not SpellTable[_W].ready)
-
-        -- No Target
-        or (not target)
-
-        -- Disabled
-        or (not Menu.farm.useW)
-
-        -- Not enought mana
-        or (myManaPct() < Menu.farm.mana)
-
-        -- Out of range
-        or (GetDistance(target) > myHero.range + SpellTable[_W].range)
-
-        then return false end
+        end
 
     end
 
-    return true
-
 end
 
-function CanCastE(mode, target)
+function KS()
 
-    mode = mode or 1
-    target = target or GetClosestAlly() or myHero
+    for _, enemy in ipairs(GetEnemyHeroes()) do
 
-    if mode == 1 then -- CARRY MODE
+        qDmg = getDmg("Q", enemy, myHero)
 
-        -- Spell not ready
-        if (not SpellTable[_E].ready)
+        if ValidTarget(enemy) and enemy.visible then
 
-        -- Disabled
-        or (not Menu.carry.useE)
+            if enemy.health < qDmg then CastQ(enemy) end
+            -- if Menu.ks.ignite then AutoIgnite(enemy) end
 
-        -- Not enought mana
-        or (myManaPct() < Menu.carry.mana)
-
-        -- Out of range
-        or (GetDistance(target) > myHero.range + SpellTable[_E].range)
-
-        -- Disabled Target
-        -- or (not Menu.skills.q[TargetList[_Q].hash])
-
-        then return false end
-
-    elseif mode == 2 then -- MIXED MODE
-
-        if myHero:GetSpellData(_E).level < 1 then return false end
-
-        -- Spell not ready
-        if (not SpellTable[_E].ready)
-
-        -- Not enought mana
-        or (myManaPct() < Menu.harass.mana)
-
-        -- Use on heroes
-        or (target.type ~= myHero.type)
-
-        -- Disabled Target
-        -- (MMTarget.type == myHero.type and not Menu.skills.w[TargetList[_Q].hash])
-
-        then return false end
+        end
 
     end
 
-    return true
-
 end
 
-function CanCastR(mode, target, min)
-
-    mode = mode or 1
-    target = target or TargetList[_R]
-
-    if mode == 1 then -- CARRY MODE
-
-        -- Spell not ready
-        if (not SpellTable[_R].ready)
-
-        -- No target
-        or (not TargetList[_R])
-
-        -- Disabled
-        or (not Menu.carry.useR)
-
-        -- Not enought mana
-        or (myManaPct() < Menu.carry.mana)
-
-        -- Out of range
-        or (GetDistance(TargetList[_R]) > myHero.range + SpellTable[_R].range)
-
-        -- Disabled Target
-        -- or (not Menu.skills.q[TargetList[_R].hash])
-
-        then return false end
-
-    elseif mode == 2 then -- MIXED MODE
-
-        if myHero:GetSpellData(_R).level < 1 then return false end
-        MMTarget = STS:GetTarget(myHero.range + SpellTable[_R].range)
-
-        -- Spell not ready
-        if (not SpellTable[_R].ready)
-
-        -- No target
-        or (not MMTarget)
-
-        -- Out of Range
-        or (GetDistance(MMTarget) > myHero.range + SpellTable[_R].range)
-
-        -- Not enought mana
-        or (myManaPct() < Menu.harass.mana)
-
-        -- Use on heroes
-        or (MMTarget.type ~= myHero.type)
-
-        -- Disabled Target
-        -- (MMTarget.type == myHero.type and not Menu.skills.w[TargetList[_Q].hash])
-
-        -- Minimum targets
-        -- or (not target or #TargetList[_R] < min)
-
-        then return false end
-
-    elseif mode == 3 then -- CLEAR MODE
-
-        -- Spell not ready
-        if (not SpellTable[_R].ready)
-
-        -- No Target
-        or (not target)
-
-        -- Disabled
-        or (not Menu.farm.useR)
-
-        -- Not enought mana
-        or (myManaPct() < Menu.farm.mana)
-
-        -- Out of range
-        or (GetDistance(target) > myHero.range + SpellTable[_R].range)
-
-        then return false end
-
-    end
-
-    return true
-
-end
-
+-- MAIN DRAW FUNCTION --
 function __draw()
 
     DrawCircles()
     DrawText()
 
 end
+-- MAIN DRAW FUNCION --
 
+-- DRAW FUNCTIONS -- 
 function DrawCircles()
 
     if Menu and Menu.draw and Menu.draw.enabled then
 
-        if Menu.draw.lfc then
+        if Menu.draw.lfc then -- LAG FREE CIRCLES
 
-            if Menu.draw.drawAA then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SOWi:MyRange() + 50, ARGB(255,255,255,255)) end 
+            if Menu.draw.drawAA then DrawCircleLFC(myHero.x, myHero.y, myHero.z, GetTrueRange(), ARGB(255,255,255,255)) end -- DRAW AA RANGE
 
-            if Menu.draw.drawQ and SpellTable[_Q].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_Q].range, ARGB(255,255,255,255)) end
+            if Menu.draw.drawQ and SpellTable[_Q].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_Q].range, ARGB(255,255,255,255)) end -- DRAW Q RANGE
 
-            if Menu.draw.drawW and SpellTable[_W].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_W].range, ARGB(255,255,255,255)) end
+            if Menu.draw.drawW and SpellTable[_W].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_W].range, ARGB(255,255,255,255)) end -- DRAW W RANGE
 
-            if Menu.draw.drawE and SpellTable[_E].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_E].range, ARGB(255,255,255,255)) end
+            if Menu.draw.drawE and SpellTable[_E].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_E].range, ARGB(255,255,255,255)) end -- DRAW E RANGE
 
-            if Menu.draw.drawR and SpellTable[_R].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_R].range, ARGB(255,255,255,255)) end
+            if Menu.draw.drawR and SpellTable[_R].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_R].range, ARGB(255,255,255,255)) end -- DRAW R RANGE
 
-            if Menu.draw.drawTarget and GetTarget() and GetTarget() ~= nil then DrawCircleLFC(GetTarget().x or 1, GetTarget().y or 1, GetTarget().z or 1, 150, ARGB(255,255,255,255)) end
+            if Menu.draw.drawTarget and GetTarget() ~= nil then DrawCircleLFC(GetTarget().x, GetTarget().y, GetTarget().z, 150, ARGB(255,255,255,255)) end -- DRAW TARGET
 
-        else
+        else -- NORMAL CIRCLES
 
-            if Menu.draw.drawAA then DrawCircle(myHero.x, myHero.y, myHero.z, SOWi:MyRange() + 50, ARGB(255,255,255,255)) end
+            if Menu.draw.drawAA then DrawCircle(myHero.x, myHero.y, myHero.z, GetTrueRange(), ARGB(255,255,255,255)) end -- DRAW AA RANGE
 
-            if Menu.draw.drawQ and SpellTable[_Q].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_Q].range, ARGB(255,255,255,255)) end
+            if Menu.draw.drawQ and SpellTable[_Q].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_Q].range, ARGB(255,255,255,255)) end -- DRAW Q RANGE
 
-            if Menu.draw.drawW and SpellTable[_W].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_W].range, ARGB(255,255,255,255)) end
+            if Menu.draw.drawW and SpellTable[_W].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_W].range, ARGB(255,255,255,255)) end -- DRAW W RANGE
 
-            if Menu.draw.drawE and SpellTable[_E].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_E].range, ARGB(255,255,255,255)) end
+            if Menu.draw.drawE and SpellTable[_E].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_E].range, ARGB(255,255,255,255)) end -- DRAW E RANGE
 
-            if Menu.draw.drawR and SpellTable[_R].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_R].range, ARGB(255,255,255,255)) end
+            if Menu.draw.drawR and SpellTable[_R].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_R].range, ARGB(255,255,255,255)) end -- DRAW R RANGE
 
-            if Menu.draw.drawTarget and GetTarget() and GetTarget() ~= nil then DrawCircle(GetTarget().x or 1, GetTarget().y or 1, GetTarget().z or 1, 150, ARGB(255,255,255,255)) end
+            if Menu.draw.drawTarget and GetTarget() ~= nil then DrawCircle(GetTarget().x, GetTarget().y, GetTarget().z, 150, ARGB(255,255,255,255)) end -- DRAW TARGET
 
         end
 
@@ -760,30 +705,112 @@ end
 function DrawText()
 
 end
+-- DRAW FUNCTIONS --
+
+
+function GetBestCircularFarmPosition(range, radius, objects)
+    local BestPos
+    local BestHit = 0
+    for i, object in ipairs(objects) do
+        local hit = CountObjectsNearPos(object.visionPos or object, range, radius, objects)
+        if hit > BestHit then
+            BestHit = hit
+            BestPos = Vector(object)
+            if BestHit == #objects then
+                break
+            end
+        end
+    end
+    return BestPos, BestHit
+end
+
+function __initPriorities()
+
+    if heroManager.iCount < 10 and (GetGame().map.shortName == "twistedTreeline" or heroManager.iCount < 6) then
+
+        SendMessage("Too few champs to arrange priorities.")
+
+    elseif heroManager.iCount == 6 then
+
+        ArrangePrioritiesTT()
+
+    else
+
+        ArrangePriorities()
+
+    end
+
+end
+
+function SetPriority(table, hero, priority)
+
+    for i = 1, #table, 1 do
+
+        if hero.charName:find(table[i]) ~= nil then
+            TS_SetHeroPriority(priority, hero.charName)
+        end
+
+    end
+
+end
+
+function ArrangePriorities()
+
+    for _, enemy in ipairs(GetEnemyHeroes()) do
+
+        SetPriority(PriorityTable.AD_Carry, enemy, 1)
+        SetPriority(PriorityTable.AP, enemy, 2)
+        SetPriority(PriorityTable.Support, enemy, 3)
+        SetPriority(PriorityTable.Bruiser, enemy, 4)
+        SetPriority(PriorityTable.Tank, enemy, 5)
+
+    end
+
+end
+
+function ArrangePrioritiesTT()
+
+    for _, enemy in ipairs(GetEnemyHeroes()) do
+
+        SetPriority(PriorityTable.AD_Carry, enemy, 1)
+        SetPriority(PriorityTable.AP, enemy, 1)
+        SetPriority(PriorityTable.Support, enemy, 2)
+        SetPriority(PriorityTable.Bruiser, enemy, 2)
+        SetPriority(PriorityTable.Tank, enemy, 3)
+
+    end
+
+end
 
 -- SUPP PLOX GLOBAL FUNCTIONS --
 function myManaPct() return (myHero.mana * 100) / myHero.maxMana end
+function targetHealthPct(target) return (target.health * 100) / target.maxHealth end
 
-function GetAlliesNearHero(vrange)
-    local count = 0
-    for i=1, heroManager.iCount do
-        currentAlly = heroManager:GetHero(i)
-        if currentAlly.team == myHero.team and currentAlly.charName ~= myHero.charName then
-            if myHero:GetDistance(currentAlly) <= vrange and not currentAlly.dead then count = count + 1 end
-        end
-    end
-    return count
+function GetMaxRange()
+
+    return math.max(myHero.range, SpellTable[_Q].range, SpellTable[_W].range, SpellTable[_E].range, SpellTable[_R].range)
+
 end
 
-function GetEnemiesNearHero(vrange)
-    count = 0
-    for i=1, heroManager.iCount do
-        currentEnemy = heroManager:GetHero(i)
-        if currentEnemy.team ~= myHero.team then
-            if myHero:GetDistance(currentEnemy) <= vrange and not currentEnemy.dead then count = count + 1 end
+function GetTrueRange()
+    return myHero.range + GetDistance(myHero, myHero.minBBox)
+end
+
+function GetHitBoxRadius(target)
+
+return GetDistance(target.minBBox, target.maxBBox)/2
+
+end
+
+
+function CountObjectsNearPos(pos, range, radius, objects)
+    local n = 0
+    for i, object in ipairs(objects) do
+        if GetDistanceSqr(pos, object) <= radius * radius then
+            n = n + 1
         end
     end
-    return count
+    return n
 end
 
 function GetClosestAlly()
@@ -829,13 +856,45 @@ end
 
 function GetTarget()
 
-    if TargetList and TargetList["main"] then return TargetList["main"] else return nil end
+    TargetSelector:update()
+
+    if orbwalker == 'SAC' then
+
+        if _G.AutoCarry and _G.AutoCarry.Crosshair and _G.AutoCarry.Attack_Crosshair and _G.AutoCarry.Attack_Crosshair.target and _G.AutoCarry.Attack_Crosshair.target.type == myHero.type then
+
+            return _G.AutoCarry.Attack_Crosshair.target
+
+        end
+
+    end
+
+    if orbwalker == 'MMA' then
+
+        if _G.MMA_Target and _G.MMA_Target.type == myHero.type then
+
+            return _G.MMA_Target
+
+        end
+
+    end
+
+    if orbwalker == 'SxOrb' then
+
+        if SxOrb and SxOrb:GetTarget() and SxOrb:GetTarget().type == myHero.type then
+
+            return SxOrb:GetTarget()
+
+        end
+
+    end
+
+    return TargetSelector.target
 
 end
 
 function GenerateSpellPacket(spell, x, y, fromX, fromY, target)
 
-    return { spellID = spell, toX = x, toY = y, fromX = fromX or myHero.x, fromY = fromY or myHero.y } or { spellID = spell, targetNetworkId = target.networkID } or nil
+    return { spellId = spell, toX = x, toY = y, fromX = fromX or myHero.x, fromY = fromY or myHero.y } or { spellId = spell, targetNetworkId = target.networkID } or { spellId = spell } or nil
 
 end
 -- SUPP PLOX GLOBAL FUNCTIONS --
