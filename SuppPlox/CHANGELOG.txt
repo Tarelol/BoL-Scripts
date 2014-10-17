@@ -1,0 +1,8 @@
+17/10/2014 - v0.01
+
+- [release] Initial release [BASE]
+
+- [added] Template
+- [added] Morgana
+- [added] AutoUpdate
+- [added] Sourcelib library syncronization

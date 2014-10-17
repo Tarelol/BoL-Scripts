@@ -378,9 +378,26 @@ end
 -- SCRIPT FUNCTIONS --
 function Combo(target)
 
+    if ValidTarget(target) and target ~= nil and target.type == myHero.type then
+
+        if myManaPct() >= Menu.combo.mana and Menu.combo.useQ then CastQ(target) end
+        if myManaPct() >= Menu.combo.mana and Menu.combo.useW then CastW(target) end
+        if myManaPct() >= Menu.combo.mana and Menu.combo.useE then CastE(target) end
+        if myManaPct() >= Menu.combo.mana and Menu.combo.useR then CastR(target) end
+
+    end
+
 end
 
 function Harass(target)
+
+    if ValidTarget(target) and target ~= nil and target.type == myHero.type and (myManaPct() >= Menu.harass.mana) then
+
+        if Menu.harass.useQ then CastQ(target) end
+        if Menu.harass.useW then CastW(target) end
+        if Menu.harass.useE then CastE(target) end
+
+    end
 
 end
 
@@ -522,6 +539,7 @@ end
 
 -- SUPP PLOX GLOBAL FUNCTIONS --
 function myManaPct() return (myHero.mana * 100) / myHero.maxMana end
+function targetHealthPct(target) return (target.health * 100) / target.maxHealth end
 
 function GetMaxRange()
 
@@ -535,7 +553,7 @@ end
 
 function GetHitBoxRadius(target)
 
-return GetDistance(target.minBBox, target.maxBBox)/2
+    return GetDistance(target.minBBox, target.maxBBox)/2
 
 end
 

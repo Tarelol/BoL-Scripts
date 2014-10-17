@@ -420,11 +420,11 @@ function Farm()
 
     enemyMinions:update()
 
-    if farmKey and not (myManaPct() < Menu.farm.mana) then
+    if not (myManaPct() < Menu.farm.mana) then
 
         for i, minion in pairs(enemyMinions.objects) do
 
-            if ValidTarget(minion) and minion ~= il then
+            if ValidTarget(minion) and minion ~= nil then
 
                 if Menu.farm.useW and GetDistance(minion) <= SpellTable[_W].range then
 
@@ -591,7 +591,7 @@ end
 
 function CastR(target)
 
-    if SpellTable[_R].ready and ((targetHealthPct(myHero) >= Menu.ult.heroHP) and (targetHealthPct(target) >= Menu.ult.minHp)) then
+    if SpellTable[_R].ready and ((targetHealthPct(myHero) >= Menu.ult.heroHp) and (targetHealthPct(target) >= Menu.ult.minHp)) then
 
         if CountEnemyHeroInRange(SpellTable[_R].range) >= Menu.combo.minR then
 				
@@ -616,7 +616,7 @@ end
 
 function AutoUlt(target)
 
-    if SpellTable[_R].ready and ((targetHealthPct(myHero) >= Menu.ult.heroHP) and (targetHealthPct(target) >= Menu.ult.minHp)) then
+    if SpellTable[_R].ready and ((targetHealthPct(myHero) >= Menu.ult.heroHp) and (targetHealthPct(target) >= Menu.ult.minHp)) then
 
         if CountEnemyHeroInRange(SpellTable[_R].range) >= Menu.ult.min then
 
