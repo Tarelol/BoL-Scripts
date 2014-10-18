@@ -1,10 +1,10 @@
 --[[
 
-    GIBE SUPPORT PLOX v0.2 - Astoriane Support Bundle - TEMPLATE
+    GIBE SUPPORT PLOX v0.2 - Astoriane Support Bundle - Blitzcrank
 
 ]]
 
-if myHero.charName ~= "" then return end
+if myHero.charName ~= "Blitzcrank" then return end
 
 local _ScriptName = "SuppPlox"
 local _ScriptVersion = 0.2
@@ -130,52 +130,52 @@ function __initVars()
         [_Q] = {
 
             id = "q",
-            name = "",
+            name = "Rocket Grab",
             ready = false,
-            range = 0,
-            width = 0,
-            speed = 0,
-            delay = 0,
-            sType = UNIDENTIFIED,
+            range = 1000,
+            width = 70,
+            speed = 1800,
+            delay = 0.25,
+            sType = SKILLSHOT_LINEAR,
 
         },
 
         [_W] = {
 
             id = "w",
-            name = "",
+            name = "Overdrive",
             ready = false,
-            range = 0,
-            width = 0,
-            speed = 0,
-            delay = 0,
-            sType = UNIDENTIFIED,
+            range = nil,
+            width = nil,
+            speed = nil,
+            delay = nil,
+            sType = SELF_TARGETED,
 
         },
 
         [_E] = {
 
             id = "e",
-            name = "",
+            name = "Power Fist",
             ready = false,
-            range = 0,
-            width = 0,
-            speed = 0,
-            delay = 0,
-            sType = UNIDENTIFIED,
+            range = nil,
+            width = nil,
+            speed = nil,
+            delay = nil,
+            sType = SELF_TARGETED,
 
         },
 
         [_R] = {
 
             id = "r",
-            name = "",
+            name = "Static Field",
             ready = false,
-            range = 0,
-            width = 0,
-            speed = 0,
-            delay = 0,
-            sType = UNIDENTIFIED,
+            range = 600,
+            width = nil,
+            speed = nil,
+            delay = nil,
+            sType = SELF_TARGETED,
 
         }
 
@@ -242,7 +242,6 @@ function __initLibs()
 
     VP = VPrediction()
     SOWi = SOW(VP)
-    PROD = Prodiction
 
     enemyMinions = minionManager(MINION_ENEMY, GetMaxRange(), myHero, MINION_SORT_HEALTH_ASC) -- MINION MANAGER FOR LANE CLEAR
 
@@ -274,9 +273,9 @@ function __initMenu()
         Menu.harass:addParam("mana", "Min Mana For Harass", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
 
     Menu:addSubMenu("[" .. myHero.charName.. "] Farm", "farm")
-        Menu.farm:addParam("useQ", "Enable Q (".. SpellTable[_Q].name ..")", SCRIPT_PARAM_ONOFF, true)
         Menu.farm:addParam("useW", "Enable W (".. SpellTable[_W].name ..")", SCRIPT_PARAM_ONOFF, true)
         Menu.farm:addParam("useE", "Enable E (".. SpellTable[_E].name ..")", SCRIPT_PARAM_ONOFF, true)
+        Menu.farm:addParam("useR", "Enable R (".. SpellTable[_Q].name ..")", SCRIPT_PARAM_ONOFF, true)
         Menu.farm:addParam("mana", "Min Mana For Lane Clear", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
 
     Menu:addSubMenu("[" .. myHero.charName.. "] Killsteal", "ks")
@@ -291,17 +290,17 @@ function __initMenu()
         else
             Menu.prediction:addParam("type", "Prediction:", SCRIPT_PARAM_INFO, "VPrediction")
         end
-        Menu.prediction:addParam(nil, "", SCRIPT_PARAM_INFO, "")
+        Menu.prediction:addParam("nil", "", SCRIPT_PARAM_INFO, "")
 
-        for index, skill in pairs(SpellTable) do
-
-            if (skill.sType == SKILLSHOT_LINEAR) or (skill.sType == SKILLSHOT_CONE) or (skill.sType == SKILLSHOT_CIRCULAR) then
-
-                Menu.prediction:addParam(skill.id, string.upper(skill.id) .. " hit chance", SCRIPT_PARAM_SLICE, 2, 1, 3, 0)
-
-            end
-
-        end
+        for _, skill in pairs(SpellTable) do
+				
+					if skill.sType == SKILLSHOT_LINEAR or skill.sType == SKILLSHOT_CONE or skill.sType == SKILLSHOT_CIRCULAR then
+					
+						Menu.prediction:addParam(skill.id, string.upper(skill.id) .. " Hit Chance", SCRIPT_PARAM_SLICE, 2, 1, 3, 0)
+					
+					end
+				
+				end
 
     Menu:addSubMenu("[" .. myHero.charName.. "] Items", "item")
         for ItemID, Values in pairs(ItemTable) do
@@ -471,31 +470,31 @@ function DrawCircles() -- CIRCLE DRAWINGS ON SCREEN
 
         if Menu.draw.lfc then -- LAG FREE CIRCLES
 
-            if Menu.draw.drawAA then DrawCircleLFC(myHero.x, myHero.y, myHero.z, GetTrueRange(), ARGB(255,255,255,255)) end -- DRAW AA RANGE
+            if Menu.draw.drawAA then DrawCircleLFC(myHero.x, myHero.y, myHero.z, GetTrueRange(), ARGB(255,255,255,255)) end -- DRAW AA RANGE LFC
 
-            if Menu.draw.drawQ and SpellTable[_Q].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_Q].range, ARGB(255,255,255,255)) end -- DRAW Q RANGE
+            if Menu.draw.drawQ and SpellTable[_Q].range ~= nil and SpellTable[_Q].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_Q].range, ARGB(255,255,255,255)) end -- DRAW Q RANGE LFC
 
-            if Menu.draw.drawW and SpellTable[_W].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_W].range, ARGB(255,255,255,255)) end -- DRAW W RANGE
+            if Menu.draw.drawW and SpellTable[_W].range ~= nil and SpellTable[_W].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_W].range, ARGB(255,255,255,255)) end -- DRAW W RANGE LFC
 
-            if Menu.draw.drawE and SpellTable[_E].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_E].range, ARGB(255,255,255,255)) end -- DRAW E RANGE
+            if Menu.draw.drawE and SpellTable[_E].range ~= nil and SpellTable[_E].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_E].range, ARGB(255,255,255,255)) end -- DRAW E RANGE LFC
 
-            if Menu.draw.drawR and SpellTable[_R].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_R].range, ARGB(255,255,255,255)) end -- DRAW R RANGE
+            if Menu.draw.drawR and SpellTable[_R].range ~= nil and SpellTable[_R].ready then DrawCircleLFC(myHero.x, myHero.y, myHero.z, SpellTable[_R].range, ARGB(255,255,255,255)) end -- DRAW R RANGE LFC
 
-            if Menu.draw.drawTarget and GetTarget() ~= nil then DrawCircleLFC(GetTarget().x, GetTarget().y, GetTarget().z, 150, ARGB(255,255,255,255)) end -- DRAW TARGET
+            if Menu.draw.drawTarget and GetTarget() ~= nil then DrawCircleLFC(GetTarget().x, GetTarget().y, GetTarget().z, 150, ARGB(255,255,255,255)) end -- DRAW TARGET LFC
 
         else -- NORMAL CIRCLES
 
-            if Menu.draw.drawAA then DrawCircle(myHero.x, myHero.y, myHero.z, GetTrueRange(), ARGB(255,255,255,255)) end -- DRAW AA RANGE
+            if Menu.draw.drawAA then DrawCircle(myHero.x, myHero.y, myHero.z, GetTrueRange(), ARGB(255,255,255,255)) end -- DRAW AA RANGE NORMAL
 
-            if Menu.draw.drawQ and SpellTable[_Q].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_Q].range, ARGB(255,255,255,255)) end -- DRAW Q RANGE
+            if Menu.draw.drawQ and SpellTable[_Q].range ~= nil and SpellTable[_Q].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_Q].range, ARGB(255,255,255,255)) end -- DRAW Q RANGE NORMAL
 
-            if Menu.draw.drawW and SpellTable[_W].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_W].range, ARGB(255,255,255,255)) end -- DRAW W RANGE
+            if Menu.draw.drawW and SpellTable[_W].range ~= nil and SpellTable[_W].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_W].range, ARGB(255,255,255,255)) end -- DRAW W RANGE NORMAL
 
-            if Menu.draw.drawE and SpellTable[_E].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_E].range, ARGB(255,255,255,255)) end -- DRAW E RANGE
+            if Menu.draw.drawE and SpellTable[_E].range ~= nil and SpellTable[_E].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_E].range, ARGB(255,255,255,255)) end -- DRAW E RANGE NORMAL
 
-            if Menu.draw.drawR and SpellTable[_R].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_R].range, ARGB(255,255,255,255)) end -- DRAW R RANGE
+            if Menu.draw.drawR and SpellTable[_R].range ~= nil and SpellTable[_R].ready then DrawCircle(myHero.x, myHero.y, myHero.z, SpellTable[_R].range, ARGB(255,255,255,255)) end -- DRAW R RANGE NORMAL
 
-            if Menu.draw.drawTarget and GetTarget() ~= nil then DrawCircle(GetTarget().x, GetTarget().y, GetTarget().z, 150, ARGB(255,255,255,255)) end -- DRAW TARGET
+            if Menu.draw.drawTarget and GetTarget() ~= nil then DrawCircle(GetTarget().x, GetTarget().y, GetTarget().z, 150, ARGB(255,255,255,255)) end -- DRAW TARGET NORMAL
 
         end
 
@@ -598,7 +597,7 @@ end
 
 function GetMaxRange() -- RETURN: MAX RANGE AMONGST HERO SKILLS - number
 
-    return math.max(myHero.range, SpellTable[_Q].range, SpellTable[_W].range, SpellTable[_E].range, SpellTable[_R].range)
+    return math.max(myHero.range, SpellTable[_Q].range or 0, SpellTable[_W].range or 0, SpellTable[_E].range or 0, SpellTable[_R].range or 0)
 
 end
 

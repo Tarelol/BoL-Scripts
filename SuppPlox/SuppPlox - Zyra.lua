@@ -1,13 +1,13 @@
 --[[
 
-    GIBE SUPPORT PLOX v0.2 - Astoriane Support Bundle - TEMPLATE
+    GIBE SUPPORT PLOX v0.1 - Astoriane Support Bundle - TEMPLATE
 
 ]]
 
-if myHero.charName ~= "" then return end
+if myHero.charName ~= "Zyra" then return end
 
 local _ScriptName = "SuppPlox"
-local _ScriptVersion = 0.2
+local _ScriptVersion = 0.1
 local _ScriptAuthor = "Astoriane"
 
 local AutoUpdate = false
@@ -77,8 +77,17 @@ function OnTick()
 
     if not _G.SuppPlox_Loaded then return end
 
-    __modes()
-    __update()
+    carryKey    = Menu.keys.carry
+    harassKey   = Menu.keys.harass
+    farmKey     = Menu.keys.farm
+
+    if carryKey     then Combo(Target)  end
+    if harassKey    then Harass(Target) end
+    if farmKey      then Farm()         end
+
+    if Menu.ks.enabled then KS() end
+
+    Update()
 
 end 
 
@@ -117,71 +126,65 @@ end
 -- INITIALIZE GLOBAL VARIABLES --
 function __initVars()
 
-    -- SCRIPT GLOBALS
     _G.SuppPlox_Loaded = false
     _G.SuppPlox_AutoItems = true
 
-    SKILLSHOT_LINEAR, SKILLSHOT_CONE, SKILLSHOT_CIRCULAR, ENEMY_TARGETED, SELF_TARGETED, MULTI_TARGETED, UNIDENTIFIED = 0, 1, 2, 3, 4, 5, -1
-
-
-    -- TABLE OF HERO SKILLS
     SpellTable = {
     
         [_Q] = {
 
-            id = "q",
-            name = "",
+            name = "Deadly Bloom",
             ready = false,
-            range = 0,
-            width = 0,
-            speed = 0,
-            delay = 0,
-            sType = UNIDENTIFIED,
+            range = 800,
+            width = 100, width2 = 150,
+            speed = 1400,
+            delay = 0.5,
+            self = false,
+            ally = false
 
         },
 
         [_W] = {
 
-            id = "w",
-            name = "",
+            name = "Rampant Growth",
             ready = false,
-            range = 0,
-            width = 0,
-            speed = 0,
-            delay = 0,
-            sType = UNIDENTIFIED,
+            range = 840,
+            width = 10,
+            speed = math.huge,
+            delay = 0.2432,
+            self = false,
+            ally = false
 
         },
 
         [_E] = {
 
-            id = "e",
-            name = "",
+            name = "Grasping Roots",
             ready = false,
-            range = 0,
-            width = 0,
-            speed = 0,
-            delay = 0,
-            sType = UNIDENTIFIED,
+            range = 1000,
+            width = 40,
+            speed = 1200,
+            delay = 0.5,
+            self = false,
+            ally = false
 
         },
 
         [_R] = {
 
-            id = "r",
-            name = "",
+            name = "Stranglethorns",
             ready = false,
-            range = 0,
-            width = 0,
-            speed = 0,
-            delay = 0,
-            sType = UNIDENTIFIED,
+            range = 700,
+            width = 500,
+            speed = math.huge,
+            delay = 0.500,
+            self = false,
+            ally = false
 
         }
 
     }
 
-    -- TABLE OF SUPPORTED ITEMS
     ItemTable = {
     
         [3092] = { id = "frost",      name = "Frost Queen's Claim",        range = 850, slot = nil, ready = false },
@@ -191,7 +194,6 @@ function __initVars()
 
     }
 
-    -- TABLE FOR ARRANGING TARGETING PRIORITIES
     PriorityTable = {
         AP = {
             "Annie", "Ahri", "Akali", "Anivia", "Annie", "Azir", "Brand", "Cassiopeia", "Diana", "Evelynn", "FiddleSticks", "Fizz", "Gragas", "Heimerdinger", "Karthus",
@@ -221,7 +223,7 @@ function __initVars()
 
 end
 
--- LOAD SEQUENCE -- SCRIPT LOADUP - SEND START MESSAGES AND ARRANGE GLOBALS
+-- LOAD SEQUENCE --
 function __load()
 
     SendMessage("SuppPlox by Astoriane")
@@ -244,7 +246,7 @@ function __initLibs()
     SOWi = SOW(VP)
     PROD = Prodiction
 
-    enemyMinions = minionManager(MINION_ENEMY, GetMaxRange(), myHero, MINION_SORT_HEALTH_ASC) -- MINION MANAGER FOR LANE CLEAR
+    enemyMinions = minionManager(MINION_ENEMY, GetMaxRange(), myHero, MINION_SORT_HEALTH_ASC)
 
 end
 
@@ -285,24 +287,6 @@ function __initMenu()
     Menu:addSubMenu("[" .. myHero.charName.. "] Orbwalk", "orbwalk")
         SOWi:LoadToMenu(Menu.orbwalk)
 
-    Menu:addSubMenu("[" .. myHero.charName .. "] Prediction", "prediction")
-        if VIP_USER then
-            Menu.prediction:addParam("type", "Prediction:", SCRIPT_PARAM_LIST, 1, {"Prodiction", "VPrediction"})
-        else
-            Menu.prediction:addParam("type", "Prediction:", SCRIPT_PARAM_INFO, "VPrediction")
-        end
-        Menu.prediction:addParam(nil, "", SCRIPT_PARAM_INFO, "")
-
-        for index, skill in pairs(SpellTable) do
-
-            if (skill.sType == SKILLSHOT_LINEAR) or (skill.sType == SKILLSHOT_CONE) or (skill.sType == SKILLSHOT_CIRCULAR) then
-
-                Menu.prediction:addParam(skill.id, string.upper(skill.id) .. " hit chance", SCRIPT_PARAM_SLICE, 2, 1, 3, 0)
-
-            end
-
-        end
-
     Menu:addSubMenu("[" .. myHero.charName.. "] Items", "item")
         for ItemID, Values in pairs(ItemTable) do
 
@@ -321,8 +305,11 @@ function __initMenu()
         Menu.draw:addParam("lfc", "Use Lag Free Circles", SCRIPT_PARAM_ONOFF, true)
 
     Menu:addSubMenu("[" .. myHero.charName.. "] Misc", "misc")
+        Menu.misc:addParam("packet", "Use Packets to Cast Spells", SCRIPT_PARAM_ONOFF, false)
         if VIP_USER then
-            Menu.misc:addParam("packet", "Use Packets to Cast Spells", SCRIPT_PARAM_ONOFF, false)
+            Menu.misc:addParam("pred", "Prediction", SCRIPT_PARAM_LIST, 1, {"Prodiction", "VPrediction"})
+        else
+            Menu.misc:addParam("info", "Prediction: VPrediction", SCRIPT_PARAM_INFO, "")
         end
 
     if VIP_USER then
@@ -337,22 +324,22 @@ function __initMenu()
 
 end
 
--- DETECT AND INITIALIZE ORBWALKERS -- USES SIMPLE ORBWALKER IF NONE FOUND
+-- DETECT AND INITIALIZE ORBWALKERS --
 function __initOrbwalkers()
 
-    if _G.Reborn_Loaded then -- SIDA'S AUTO CARRY REBORN LOADED - DISABLE SOW
+    if _G.Reborn_Loaded then
 
         SendMessage("SAC:R Detected. Disabling SOW.")
         orbwalker = "SAC"
         Menu.orbwalk.Enabled = false
 
-    elseif _G.MMA_Loaded then -- MARKSMAN'S MIGHTY ASSISTANT LOADED - DISABLE SOW
+    elseif _G.MMA_Loaded then
 
         SendMessage("MMA Detected. Disabling SOW.")
         orbwalker = "MMA"
         Menu.orbwalk.Enabled = false
 
-    elseif _G.SxOrbMenu then -- SXORBWALK LOADED - DISABLE SOW
+    elseif _G.SxOrbMenu then
 
         SendMessage("SxOrbwalk Detected. Disabling SOW.")
         orbwalker = "SxOrb"
@@ -364,31 +351,16 @@ function __initOrbwalkers()
 
 end
 
--- ACTIVATE MODES
-function __modes()
-
-    carryKey    = Menu.keys.carry
-    harassKey   = Menu.keys.harass
-    farmKey     = Menu.keys.farm
-
-    if carryKey     then Combo(Target)  end -- ACTIVATE CARRY MODE
-    if harassKey    then Harass(Target) end -- ACTIVATE MIXED MODE
-    if farmKey      then Farm()         end -- ACTIVATE CLEAR MODE
-
-    if Menu.ks.enabled then KS() end -- ENABLE AUTO KS
-
-end
-
 -- TICK UPDATE --
-function __update() -- UPDATE VARIABLES ON TICK
+function Update()
 
-    -- SKILLS -- CHECK IF SPELLS ARE READY
+    -- SKILLS --
     for i in pairs(SpellTable) do
         SpellTable[i].ready = myHero:CanUseSpell(i) == READY
     end
     -- SKILLS --
 
-    -- ITEMS -- CHECK IF HAS SUPPORTED ITEMS
+    -- ITEMS --
     for ItemID in pairs(ItemTable) do
         if GetInventoryHaveItem(ItemID) then
             ItemTable[ItemID].slot = GetInventorySlotItem(ItemID)
@@ -398,13 +370,13 @@ function __update() -- UPDATE VARIABLES ON TICK
     end
     -- ITEMS --
 
-    TargetSelector:update() -- UPDATE TARGETS IN RANGE
-    Target = GetTarget() -- GET DESIRED TARGET IN GLOBAL
+    TargetSelector:update()
+    Target = GetTarget()
 
 end
 
 -- SCRIPT FUNCTIONS --
-function Combo(target) -- CARRY MODE BEHAVIOUS
+function Combo(target)
 
     if ValidTarget(target) and target ~= nil and target.type == myHero.type then
 
@@ -417,7 +389,7 @@ function Combo(target) -- CARRY MODE BEHAVIOUS
 
 end
 
-function Harass(target) -- HARASS MODE BEHAVIOUR
+function Harass(target)
 
     if ValidTarget(target) and target ~= nil and target.type == myHero.type and (myManaPct() >= Menu.harass.mana) then
 
@@ -429,28 +401,28 @@ function Harass(target) -- HARASS MODE BEHAVIOUR
 
 end
 
-function Farm() -- LANE CLEAR
+function Farm()
 
 end
 
 -- SKILL FUNCTIONS --
-function CastQ(target) -- CAST Q SKILL
+function CastQ(target)
 
 end
 
-function CastW(target) -- CAST W SKILL
+function CastW(target)
 
 end
 
-function CastE(target) -- CAST E SKILL
+function CastE(target)
 
 end
 
-function CastR(target) -- CAST ULTIMATE
+function CastR(target)
 
 end
 
-function KS() -- AUTO KS FUNCTION
+function KS()
 
 end
 
@@ -459,13 +431,12 @@ function __draw()
 
     DrawCircles()
     DrawText()
-    DrawMisc()
 
 end
 -- MAIN DRAW FUNCION --
 
 -- DRAW FUNCTIONS -- 
-function DrawCircles() -- CIRCLE DRAWINGS ON SCREEN
+function DrawCircles()
 
     if Menu and Menu.draw and Menu.draw.enabled then
 
@@ -503,19 +474,7 @@ function DrawCircles() -- CIRCLE DRAWINGS ON SCREEN
 
 end
 
-function DrawText() -- TEXT DRAWINGS ON SCREEN
-
-    if Menu and Menu.draw and Menu.draw.enabled then
-
-    end
-
-end
-
-function DrawMisc() -- MISC DRAWINGS LIKE LINES OR SPRITES ON SCREEN
-
-    if Menu and Menu.draw and Menu.draw.enabled then
-
-    end
+function DrawText()
 
 end
 -- DRAW FUNCTIONS --
@@ -579,62 +538,27 @@ function ArrangePrioritiesTT()
 end
 
 -- SUPP PLOX GLOBAL FUNCTIONS --
-function myManaPct() return (myHero.mana * 100) / myHero.maxMana end -- RETURN: HERO MANA PERCENTAGE - %number
-function myHealthPct() return (myHero.health * 100) / myHero.maxHealth end -- RETURN: HERO HEALTH PERCENTAGE - %number
+function myManaPct() return (myHero.mana * 100) / myHero.maxMana end
+function targetHealthPct(target) return (target.health * 100) / target.maxHealth end
 
-function getManaPercent(unit) -- RETURN: TARGET MANA PERCENTAGE - %number
-
-    local obj = unit or myHero
-    return (onj.mana / obj.maxMana) * 100
-
-end
-
-function getHealthPercent(unit) -- RETURN: TARGET HEALTH PERCENTAGE - %number
-
-    local obj = unit or myHero
-    return (obj.health / obj.maxHealth) * 100
-
-end
-
-function GetMaxRange() -- RETURN: MAX RANGE AMONGST HERO SKILLS - number
+function GetMaxRange()
 
     return math.max(myHero.range, SpellTable[_Q].range, SpellTable[_W].range, SpellTable[_E].range, SpellTable[_R].range)
 
 end
 
-function GetTrueRange() -- RETURN: REAL AUTO ATTACK RANGE - number
+function GetTrueRange()
     return myHero.range + GetDistance(myHero, myHero.minBBox)
 end
 
-function GetHitBoxRadius(target) -- RETURN: HITBOX RADIUS OF TARGET - number
+function GetHitBoxRadius(target)
 
     return GetDistance(target.minBBox, target.maxBBox)/2
 
 end
 
-function CheckHeroCollision(pos, spell) -- RETURN: WILL THE SKILL COLLIDE - boolean
 
-    for _, enemy in ipairs(GetEnemyHeroes()) do
-
-        if ValidTarget(enemy) and _GetDistanceSqr(enemy) < math.pow(SpellTable[spell].range * 1.5, 2) then -- TODO ADD TARGET MENU HERE
-
-            local projectile, pointLine, onSegment = VectorPointProjectionOnLineSegment(Vector(player), pos, Vector(enemy))
-
-            if (_GetDistanceSqr(enemy, projectile) <= math.pow(VP:GetHitBox(enemy) * 2 + SpellTable[spell].width, 2)) then
-
-                return true
-
-            end
-
-        end
-
-    end
-
-    return false
-
-end
-
-function CountObjectsNearPos(pos, range, radius, objects) -- RETURN: NUMBER OF OBJECTS - number
+function CountObjectsNearPos(pos, range, radius, objects)
     local n = 0
     for i, object in ipairs(objects) do
         if GetDistanceSqr(pos, object) <= radius * radius then
@@ -644,47 +568,17 @@ function CountObjectsNearPos(pos, range, radius, objects) -- RETURN: NUMBER OF O
     return n
 end
 
-function AlliesInRange(range, point) -- RETURN: NUMBER OF ALLIES - number
-    local n = 0
-    for _, ally in ipairs(GetAllyHeroes()) do
-        if ValidTarget(ally, math.huge, false) and GetDistanceSqr(point, ally) <= range * range then
-            n = n + 1
+function GetClosestAlly()
+    local distance = 25000
+    local closest = nil
+    for i=1, heroManager.iCount do
+        currentAlly = heroManager:GetHero(i)
+        if currentAlly.team == myHero.team and currentAlly.charName ~= myHero.charName and not currentAlly.dead and myHero:GetDistance(currentAlly) < distance then
+            distance = person:GetDistance(currentAlly)
+            closest = currentAlly
         end
     end
-    return n
-end
-
-function GetLowestHealthAlly() -- RETURN: ALLY, HEALTH PERCENT - unit, %number
-
-    local leastHp = myHealthPct()
-    local leastHpAlly = myHero
-
-    for _, ally in ipairs(GetAllyHeroes()) do
-        local allyHpPct = getHealthPercent(ally)
-        if allyHpPct <= leastHp and not ally.dead and _GetDistanceSqr(ally) < 700 * 700 then
-            leastHp = allyHpPct
-            leastHpAlly = ally
-        end
-    end
-
-    return leastHpAlly, leastHp
-
-end
-
-function GetLinearPrediction(unit, delay, speed, source, forcevp)
-
-    forcevp = forcevp or false
-
-    if Menu.prediction.type == 1 and not forcevp then -- Prodiction
-
-        return Prodiction.GetPrediction(unit, math.huge, speed, delay, 1, source)
-
-    elseif Menu.prediction.type == 2 or forcevp then -- VPrediction
- 
-        return VP:GetPredictedPos(unit, delay, speed, source)
-
-    end
-
+    return closest
 end
 
 -- Lag free circles (by barasia, vadash and viseversa)
