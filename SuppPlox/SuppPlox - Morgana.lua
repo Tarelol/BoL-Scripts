@@ -553,7 +553,7 @@ function CastR(target) -- CAST ULTIMATE
     if target ~= nil and ValidTarget(target) and SpellTable[_R].ready and (getHealthPercent(myHero) >= Menu.ult.heroHp) and (getHealthPercent(target) >= Menu.ult.minHp) then
         if CountEnemyHeroInRange(SpellTable[_R].range) >= Menu.combo.minR then
 
-            if Menu.combo.useE then CastE(myHero) then
+            if Menu.combo.useE then CastE(myHero) end
 
             if VIP_USER and Menu.misc.packet then
 
