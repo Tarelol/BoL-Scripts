@@ -671,22 +671,6 @@ function GetLowestHealthAlly() -- RETURN: ALLY, HEALTH PERCENT - unit, %number
 
 end
 
-function GetLinearPrediction(unit, delay, speed, source, forcevp)
-
-    forcevp = forcevp or false
-
-    if Menu.prediction.type == 1 and not forcevp then -- Prodiction
-
-        return Prodiction.GetPrediction(unit, math.huge, speed, delay, 1, source)
-
-    elseif Menu.prediction.type == 2 or forcevp then -- VPrediction
- 
-        return VP:GetPredictedPos(unit, delay, speed, source)
-
-    end
-
-end
-
 -- Lag free circles (by barasia, vadash and viseversa)
 function DrawCircleNextLvl(x, y, z, radius, width, color, chordlength)
     radius = radius or 300
@@ -753,9 +737,22 @@ function GetTarget()
 
 end
 
-function GenerateSpellPacket(spell, x, y, fromX, fromY, target)
+-- SPELL PACKET FUNCTIONS --
+function GenericSpellPacket(spell, target)
 
-    return { spellID = spell, toX = x, toY = y, fromX = fromX or myHero.x, fromY = fromY or myHero.y } or { spellID = spell, targetNetworkId = target.networkID } or nil
+    return { spellId = spell, targetNetworkId = target.networkID }
+
+end
+
+function TargetedSpellPacket(spell, x, y)
+
+    return { spellId = spell, toX = x, toY = y, fromX = x, fromY = y }
+
+end
+
+function SpellPacket(spell)
+
+    return { spellId = spell }
 
 end
 -- SUPP PLOX GLOBAL FUNCTIONS --
