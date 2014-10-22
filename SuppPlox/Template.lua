@@ -54,7 +54,7 @@ end
 local libs = Require(_ScriptName .. " Libs")
 libs:Add("VPrediction", "https://raw.githubusercontent.com/Hellsing/BoL/master/common/VPrediction.lua")
 libs:Add("SOW", "https://raw.githubusercontent.com/Hellsing/BoL/master/common/SOW.lua")
-libs:Add("Prodiction", "https://bitbucket.org/Klokje/public-klokjes-bol-scripts/raw/ec830facccefb3b52212dba5696c08697c3c2854/Test/Prodiction/Prodiction.lua")
+if VIP_USER then libs:Add("Prodiction", "https://bitbucket.org/Klokje/public-klokjes-bol-scripts/raw/ec830facccefb3b52212dba5696c08697c3c2854/Test/Prodiction/Prodiction.lua") end
 
 libs:Check()
 
@@ -121,7 +121,7 @@ function __initVars()
     _G.SuppPlox_Loaded = false
     _G.SuppPlox_AutoItems = true
 
-    SKILLSHOT_LINEAR, SKILLSHOT_CONE, SKILLSHOT_CIRCULAR, ENEMY_TARGETED, SELF_TARGETED, MULTI_TARGETED, UNIDENTIFIED = 0, 1, 2, 3, 4, 5, -1
+    SKILLSHOT_LINEAR, SKILLSHOT_CONE, SKILLSHOT_CIRCULAR, ENEMY_TARGETED, SELF_TARGETED, MULTI_TARGETED, UNDEFINED = 0, 1, 2, 3, 4, 5, -1
 
 
     -- TABLE OF HERO SKILLS
@@ -136,7 +136,7 @@ function __initVars()
             width = 0,
             speed = 0,
             delay = 0,
-            sType = UNIDENTIFIED,
+            sType = UNDEFINED,
 
         },
 
@@ -149,7 +149,7 @@ function __initVars()
             width = 0,
             speed = 0,
             delay = 0,
-            sType = UNIDENTIFIED,
+            sType = UNDEFINED,
 
         },
 
@@ -162,7 +162,7 @@ function __initVars()
             width = 0,
             speed = 0,
             delay = 0,
-            sType = UNIDENTIFIED,
+            sType = UNDEFINED,
 
         },
 
@@ -175,7 +175,7 @@ function __initVars()
             width = 0,
             speed = 0,
             delay = 0,
-            sType = UNIDENTIFIED,
+            sType = UNDEFINED,
 
         }
 
@@ -184,10 +184,10 @@ function __initVars()
     -- TABLE OF SUPPORTED ITEMS
     ItemTable = {
     
-        [3092] = { id = "frost",      name = "Frost Queen's Claim",        range = 850, slot = nil, ready = false },
-        [3143] = { id = "randuin",       name = "Randuin's Omen",             range = 500, slot = nil, ready = false },
+        [3092] = { id = "frost",    name = "Frost Queen's Claim",        range = 850, slot = nil, ready = false },
+        [3143] = { id = "randuin",  name = "Randuin's Omen",             range = 500, slot = nil, ready = false },
         [3190] = { id = "locket",   name = "Locket of the Iron Solari",  range = 600, slot = nil, ready = false },
-        [3222] = { id = "crucible",       name = "Mikael's Crucible",          range = 600, slot = nil, ready = false }
+        [3222] = { id = "crucible", name = "Mikael's Crucible",          range = 600, slot = nil, ready = false }
 
     }
 
