@@ -10,7 +10,16 @@ local champions = {
     
     ["Corki"] = true,
     ["Ezreal"] = true,
-    ["Graves"] = true,
-    
+    ["Graves"] = true
 
 }
+
+for k, _ in pairs(champions) do
+
+    local className = k:gsub("%s+", "")
+    class(className)
+    champions[k] = _G[className]
+
+end
+
+-- CORKI --

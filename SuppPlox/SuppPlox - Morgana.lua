@@ -377,7 +377,7 @@ function __modes()
     if farmKey      then Farm()         end -- ACTIVATE CLEAR MODE
 
     if Menu.ks.enabled then KS() end -- ENABLE AUTO KS
-    if not Target.canMove and Menu.misc.w then CastW(target, Menu.prediction.w) end
+    if Target ~= nil and ValidTarget(Target) and not Target.canMove and Menu.misc.w then CastW(target, Menu.prediction.w) end
 
 end
 
