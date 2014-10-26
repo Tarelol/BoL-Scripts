@@ -324,6 +324,7 @@ function __initMenu()
         if VIP_USER then
             Menu.misc:addParam("packet", "Use Packets to Cast Spells", SCRIPT_PARAM_ONOFF, false)
         end
+        Menu.misc:addParam("w", "Auto W (" .. SpellTable[_W].name ..") Immobile", SCRIPT_PARAM_ONOFF, true)
 
     if VIP_USER then
 
@@ -376,6 +377,7 @@ function __modes()
     if farmKey      then Farm()         end -- ACTIVATE CLEAR MODE
 
     if Menu.ks.enabled then KS() end -- ENABLE AUTO KS
+    if not Target.canMove and Menu.misc.w then CastW(target, Menu.prediction.w) end
 
 end
 
