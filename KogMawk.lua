@@ -133,7 +133,7 @@ if srcLib.downloadNeeded == true then return end
 -----------------------------------------------------------------------------------
 --- BoL Script Status Connector --- 
 local ScriptKey = "PCFCDFHDJBB" -- Kog'Mawk Continuation auth key
-local ScriptVersion = "1.14" -- Your .version file content
+local ScriptVersion = "1.15" -- Your .version file content
 
 -- Thanks to Bilbao for his socket help & encryption
 assert(load(Base64Decode("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"), nil, "bt", _ENV))() BolBoost( ScriptKey, ScriptVersion )
@@ -194,7 +194,7 @@ local PassiveTracker = {status = false, startClock = 0, startPoint = nil, ms = n
 local LastPotCast = {red = 0, blue = 0, flask = 0}
 local Recalling
 
-local SkinList = {"Caterpillar Kog'Maw", "Sonoran Kog'Maw", "Monarch Kog'Maw", "Reindeer Kog'Maw", "Lion Dance Kog'Maw", "Deep Sea Kog'Maw", "Jurassic Kog'Maw", "Classic Kog'Maw"}
+local SkinList = { "Classic" ,"Caterpillar Kog'Maw", "Sonoran Kog'Maw", "Monarch Kog'Maw", "Reindeer Kog'Maw", "Lion Dance Kog'Maw", "Deep Sea Kog'Maw", "Jurassic Kog'Maw", "Battlecast Kog'Maw"}
 local lastSkin = 0
 
 local orbwalkerChekced = false
@@ -329,6 +329,22 @@ function OnDraw()
     	end
 
     end
+
+    -- Skin Hack
+    if Menu and Menu.skins and Menu.skins.enabled then
+        SkinHack()
+    else
+
+        for i, v in pairs(SkinList) do
+
+            if Menu.skins["skin"..i] then
+                Menu.skins["skin"..i] = false
+            end
+
+        end
+
+    end
+
 end
 
 function OnGainBuff(unit, buff)
@@ -377,7 +393,7 @@ end
 
 function SendMessage(msg)
 
-    PrintChat("<font color=\"#FF6600\">[Kog'Mawk]</font> <font color=\"#FFFFFF\">" .. msg .. "</font>")
+    PrintChat("<font color=\"#FF6600\"><b>[Kog'Mawk]</b></font> <font color=\"#FFFFFF\">" .. msg .. "</font>")
 
 end
 
@@ -446,11 +462,6 @@ function UpdateValues()
 	-- _R Stacks for Non-VIP
 	if SpellData[_R].lastCast + 6000 <= GetTickCount() and not VIP_USER then
 		SpellData[_R].stacks = 0
-	end
-	
-	-- Skin Hack
-	if Menu and Menu.skin then
-		SkinHack()
 	end
 	
 end
@@ -937,26 +948,6 @@ end
 
 function __initOrbwalker()
 
-	--[[
-
-    if _G.MMA_Loaded then
-		SendMessage("Marksman's Mighty Assistant found! Simple Orbwalker was been disabled.")
-        orbwalkers['MMA'] = true
-		Menu.sow.Enabled = false
-	elseif _G.Reborn_Loaded then
-		SendMessage("SAC:Reborn found! Simple Orbwalker was been disabled.")
-        orbwalkers['SAC'] = true
-		Menu.sow.Enabled = false
-	elseif _G.SxOrbMenu then
-		SendMessage("SxOrbWalk found! Simple Orbwalker was been disabled.")
-        orbwalkers['SxOrbWalk'] = true
-		Menu.sow.Enabled = false
-	else
-		SendMessage("No orbwalkers found, using Simple Orbwalker.")		
-	end
-
-    ]]--
-
     table.insert(orbwalkers, 1, GenerateOrbwalker('SOW', true))
 
     if _G.SxOrbMenu then table.insert(orbwalkers, GenerateOrbwalker('SxOrbWalk', true)) end
@@ -1148,7 +1139,7 @@ function __initMenu()
 
 	-- SOW
 	Menu:addSubMenu("Keybinding/Orbwalker Settings", "orb")
-        Menu.orb:addParam("orbchoice", "Choose Orbwalker (Requires Reload)", SCRIPT_PARAM_LIST, 1, orbNames)
+        Menu.orb:addParam("orbchoice", "Choose Orbwalker", SCRIPT_PARAM_LIST, 1, orbNames)
 
     if Menu.orb and Menu.orb.orbchoice and Menu.orb.orbchoice ~= nil then
         Menu.orb:addSubMenu("[Orbwalk] SOW", "sow")
@@ -1184,8 +1175,14 @@ function __initMenu()
 	-- Skins
 	if VIP_USER then
         Menu:addSubMenu("[VIP] Skin", 'skins')
-        Menu.skins:addParam("enabled", "Enable Skin Changer", SCRIPT_PARAM_ONOFF, false)
-        Menu.skins:addParam("skin", "Skin", SCRIPT_PARAM_LIST, #SkinList, SkinList)
+        Menu.skins:addParam("enabled", "Enable Skin Hack (DO NOT IF 4.21)", SCRIPT_PARAM_ONOFF, false)
+
+        for i, skin in pairs(SkinList) do
+
+            Menu.skins:addParam("skin" .. tostring(i), skin, SCRIPT_PARAM_ONOFF, false)
+
+        end
+
 		Menu:addParam("prediction", "Prediction", SCRIPT_PARAM_LIST, 1, {"VPrediction", "PROdiction"})
 		
 	end
@@ -1213,46 +1210,42 @@ end
 
 -- Skin Hack by shalzuth
 function GenModelPacket(champ, skinId)
-	p = CLoLPacket(0x97)
-	p:EncodeF(myHero.networkID)
-	p.pos = 1
-	t1 = p:Decode1()
-	t2 = p:Decode1()
-	t3 = p:Decode1()
-	t4 = p:Decode1()
-	p:Encode1(t1)
-	p:Encode1(t2)
-	p:Encode1(t3)
-	p:Encode1(bit32.band(t4,0xB))
-	p:Encode1(1)--hardcode 1 bitfield
-	p:Encode4(skinId)
-	for i = 1, #champ do
-		p:Encode1(string.byte(champ:sub(i,i)))
-	end
-	for i = #champ + 1, 64 do
-		p:Encode1(0)
-	end
-	p:Hide()
-	RecvPacket(p)
+
+    p = CLoLPacket(0x97)
+    p:EncodeF(myHero.networkID)
+    p.pos = 1
+    t1 = p:Decode1()
+    t2 = p:Decode1()
+    t3 = p:Decode1()
+    t4 = p:Decode1()
+    p:Encode1(t1)
+    p:Encode1(t2)
+    p:Encode1(t3)
+    p:Encode1(bit32.band(t4,0xB))
+    p:Encode1(1)--hardcode 1 bitfield
+    p:Encode4(skinId)
+    for i = 1, #champ do
+        p:Encode1(string.byte(champ:sub(i,i)))
+    end
+    for i = #champ + 1, 64 do
+        p:Encode1(0)
+    end
+    p:Hide()
+    RecvPacket(p)
+
 end
 
 function SkinHack()
-	
-    if Menu.skins.enabled then
 
-        if Menu.skins.skin ~= lastSkin and VIP_USER then
-		  if lastskin == 0 and Menu.skins.skin == #SkinList then
-			return
-		  else
-			lastSkin = Menu.skins.skin
-			GenModelPacket("KogMaw", Menu.skins.skin)
-		  end
-	   end
+    for i = 1, #SkinList do
 
-    else
+        if Menu.skins["skin"..i] then
 
-        lastSkin = #SkinList
-        GenModelPacket("KogMaw", #SkinList)
+            Menu["skin"..i] = false
+            GenModelPacket(myHero.charName, i - 1)
+
+        end
 
     end
+
 end

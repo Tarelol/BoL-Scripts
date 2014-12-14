@@ -65,6 +65,7 @@ local Recalling
 function OnLoad()
 
     __initVars()
+    __initHero()
     __load()
     __initLibs()
     __initMenu()
@@ -120,6 +121,7 @@ function __initVars()
     -- SCRIPT GLOBALS
     _G.SuppPlox_Loaded = false
     _G.SuppPlox_AutoItems = true
+    _G.SuppPlox_Champ = myHero.charName
 
     SKILLSHOT_LINEAR, SKILLSHOT_CONE, SKILLSHOT_CIRCULAR, ENEMY_TARGETED, SELF_TARGETED, MULTI_TARGETED, UNDEFINED = 0, 1, 2, 3, 4, 5, -1
 
@@ -217,6 +219,20 @@ function __initVars()
             "Aatrox", "Darius", "Elise", "Fiora", "Gangplank", "Garen", "Irelia", "JarvanIV", "Jax", "Khazix", "LeeSin", "Nocturne", "Olaf", "Poppy",
             "Renekton", "Rengar", "Riven", "Rumble", "Shyvana", "Trundle", "Udyr", "Vi", "MonkeyKing", "XinZhao"
         }
+    }
+
+end
+
+function __initHero()
+
+    SHIELD_MIXED, SHIELD_MAGIC = 0, 1
+
+    ShieldTable = {
+
+        ["Morgana"] = { spell = _E, shieldType = SHIELD_MAGIC},
+        ["Janna"] = { spell = _E, shieldType = SHIELD_MIXED },
+        ["Karma"] = { spell = _E, shieldType = SHIELD_MIXED }
+
     }
 
 end
@@ -575,6 +591,10 @@ function ArrangePrioritiesTT()
         SetPriority(PriorityTable.Tank, enemy, 3)
 
     end
+
+end
+
+function AutoShield(unit, spell)
 
 end
 
