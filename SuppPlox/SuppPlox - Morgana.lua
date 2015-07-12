@@ -132,7 +132,7 @@ function __initVars()
             id = "q",
             name = "Dark Binding",
             ready = false,
-            range = 1175,
+            range = 1500,
             width = 70,
             speed = 1200,
             delay = 0,
